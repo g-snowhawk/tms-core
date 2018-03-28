@@ -1,0 +1,25 @@
+._*
+.DS_Store
+.DAV
+.htaccess
+.lastupdate
+.php_cs
+.php_cs.cache
+.svn
+.user.ini
+*.bak
+*.old
+*.org
+_notes
+Desktop.ini
+Thumbs.DB
+/*.php
+/templates
+cache/
+data/*
+data/apps/Tms/*
+data/apps/plugins/*
+
+# Allows
+!data/apps
+!.gitkeep
