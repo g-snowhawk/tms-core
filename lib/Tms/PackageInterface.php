@@ -1,0 +1,75 @@
+<?php
+/**
+ * This file is part of Tak-Me System.
+ *
+ * Copyright (c)2016-2017 PlusFive (https://www.plus-5.com)
+ *
+ * This software is released under the MIT License.
+ * https://www.plus-5.com/licenses/mit-license
+ */
+
+namespace Tms;
+
+/**
+ * Package base class interface.
+ *
+ * @license https://www.plus-5.com/licenses/mit-license  MIT License
+ * @author  Taka Goto <www.plus-5.com>
+ */
+interface PackageInterface
+{
+    public function init();
+
+    public function defaultView();
+
+    /**
+     * Reference permission.
+     *
+     * @param string $type
+     * @param string $filter1
+     * @param string $filter2
+     *
+     * @return bool
+     */
+    public function hasPermission($type, $filter1 = null, $filter2 = null);
+
+    /**
+     * Identifier of HTML for template engine.
+     *
+     * @param string $id
+     */
+    public function setHtmlId($id);
+
+    /**
+     * Dynamic navigation for template engine.
+     *
+     * @return array
+     */
+    public function navItems();
+
+    /**
+     * Return to package name.
+     *
+     * The return value doesn't include namespace
+     *
+     * @final
+     *
+     * @return string The return value must be lowercase
+     */
+    public static function packageName();
+
+    /**
+     * Return to package version.
+     *
+     * @final
+     * @see Tms\System::getVersion()
+     *
+     * @return string
+     */
+    public static function version();
+
+    /**
+     * Application unload action
+     */
+    public static function unload();
+}

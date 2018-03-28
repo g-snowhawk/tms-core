@@ -1,0 +1,134 @@
+@charset 'utf-8';
+/**
+ * Cascading Style Sheet for Tak-Me CMS
+ *
+ * @copyright 2017 PlusFive (https://www.plus-5.com)
+ * @version 2.0.0
+ */
+#mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 90;
+}
+#mask .back {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,.5);
+}
+#mask form.link {
+  width: 280px;
+  background: #fff;
+  border-radius: 4px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  padding: 8px 12px;
+  text-align: left;
+}
+#mask form input {
+  margin: 0 0 2px;
+}
+#mask form input[type="text"] {
+  width: 100%;
+  vertical-align: top;
+}
+
+#image-viewer {
+  background: #fff;
+  bottom: 0;
+  height: 300px;
+  left: 0;
+  margin: auto;
+  max-width: 980px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+}
+#image-viewer .scroller {
+  bottom: 0;
+  box-sizing: border-box;
+  left: 0;
+  overflow: auto;
+  padding: 8px 0 40px 4px;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+#image-viewer .footer {
+  bottom: 0;
+  left: 0;
+  padding: 4px 8px;
+  position: absolute;
+  right: 0;
+}
+.image-set {
+  display: inline-block;
+  position: relative;
+  margin: 0 4px 8px 0;
+}
+.image-set span.selected,
+.image-set label {
+  background: transparent url(plus.svg) no-repeat 50% 50%;
+  background-size: 48px 48px;
+  border: 1px dashed #ccc;
+  display: inline-block;
+  height: 100px;
+  min-width: 100px;
+  text-align: center;
+  vertical-align: top;
+}
+.image-set span.selected {
+  border: 1px solid #ccc;
+  background-image: none;
+}
+.image-set input[type="file"] {
+  display: none;
+}
+.thumbnail img {
+  height: 100px;
+}
+.image-set a {
+  background: transparent url(icon_delete.svg) no-repeat 50% 50%;
+  display: inline-block;
+  height: 24px;
+  left: 0;
+  line-height: 1;
+  margin: 0;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity .3s ease;
+  vertical-align: top;
+  width: 24px;
+}
+.image-set a:hover {
+  opacity: 1;
+}
+.image-set span.selected .checked {
+  background: transparent url(icon_check_mark.svg) no-repeat 50% 50%;
+  bottom: 0;
+  display: inline-block;
+  height: 24px;
+  line-height: 1;
+  margin: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  transition: opacity .5s ease;
+  vertical-align: top;
+  width: 24px;
+}
+.image-set span.editor-image-active .checked {
+  background-image: url(icon_check.svg);
+}
+.image-set span.editor-image-active .checked,
+.image-set span.selected:hover .checked {
+  opacity: 1;
+}
