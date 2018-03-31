@@ -62,6 +62,10 @@ class User extends \Tms\Common
      */
     private function setUserInfo()
     {
+        if (empty($this->session->param('uname'))) {
+            return;
+        }
+
         $get = $this->db->select(
             '*', 'user', 'WHERE uname = ?',
             [$this->session->param('uname')]
@@ -70,6 +74,11 @@ class User extends \Tms\Common
             $this->uid = $get[0]['id'];
             $this->userinfo = $get[0];
         }
+    }
+
+    protected function clearUserInfo()
+    {
+        $this->userinfo = null;
     }
 
     /**
@@ -93,7 +102,7 @@ class User extends \Tms\Common
         $skip = ['id', 'admin', 'create_date', 'modify_date'];
 
         $valid = [];
-        $valid[] = ['vl_company', 'company', 'empty'];
+        $valid[] = ['vl_fullname', 'fullname', 'empty'];
         $valid[] = ['vl_email', 'email', 'empty'];
         if (empty($post['id'])) {
             $valid[] = ['vl_uname', 'uname', 'empty'];
@@ -122,6 +131,11 @@ class User extends \Tms\Common
                 $save[$field] = $post[$field];
             }
         }
+
+        if ($this->isRoot() && $this->request->param('profile') !== '1') {
+            $save['admin'] = ($post['admin'] === '1') ? $post['admin'] : '0';
+        }
+
         if (empty($post['id'])) {
             $parent = '(SELECT * FROM table::user WHERE id = ?)';
             $unit = $this->db->nsmGetPosition($parent, 'table::user', [$this->uid]);
@@ -141,12 +155,21 @@ class User extends \Tms\Common
         if ($result !== false) {
             $modified = ($result > 0) ? $this->db->modified($table, 'id = ?', [$post['id']]) : true;
             if ($modified) {
-                if ($this->request->param('profile') !== '1' && false === $this->updatePermission($post)) {
+                if (   $this->request->param('profile') !== '1'
+                    && false === $this->updatePermission($post)
+                ) {
                     $result = false;
                 }
             } else {
                 $result = false;
             }
+
+            if (   $this->request->param('profile') === '1'
+                && false === $this->removeAlias($post)
+            ) {
+                $result = false;
+            }
+
             if ($result !== false) {
                 return $this->db->commit();
             }
@@ -168,7 +191,9 @@ class User extends \Tms\Common
 
         $result = 0;
         $this->db->begin();
-        if (false !== $result = $this->db->delete('user', 'id = ?', [$this->request->param('delete')])) {
+        if (    false !== $result = $this->db->delete('user', 'id = ?', [$this->request->param('delete')])
+             && false !== $result = $this->db->delete('user', 'alias = ?', [$this->request->param('delete')])
+        ) {
             return $this->db->commit();
         }
         trigger_error($this->db->error());
@@ -204,16 +229,20 @@ class User extends \Tms\Common
             $this->setUserInfo();
         }
 
+        if ($key === 'root') {
+            return $this->isRoot();
+        }
+
         // Administrators have full control
         if ($this->isAdmin()) {
             return true;
         }
 
-        //$options = array_values(self::parsePermissionKey($key));
-        //$statement = 'userkey = ? AND filter1 = ? AND filter2 = ? AND application = ? AND class = ? AND type = ?';
-        //array_unshift($options, $this->uid, $filter1, $filter2);
-        //$perm = $this->db->get('priv', 'permission', $statement, $options);
         $perm = $this->getPrivilege($key, $filter1, $filter2);
+
+        if (strchr($key, '.exec') === '.exec') {
+            return $perm !== '0';
+        }
 
         return $perm === '1';
     }
@@ -253,8 +282,25 @@ class User extends \Tms\Common
         }
 
         $permissions = $this->request->POST('perm');
+
+        $applications = $this->navItems();
+        foreach ($applications as $application) {
+            $key = $application['code'].'.exec';
+            if (!is_array($permissions)) {
+                $permissions = [];
+            }
+            if (!isset($permissions[$key])) {
+                $permissions[$key] = '0';
+            }
+        }
+
         if (is_array($permissions)) {
             foreach ($permissions as $key => $value) {
+
+                if (strchr($key, '.exec') === '.exec' && $value === '1') {
+                    continue;
+                }
+
                 $filter1 = 0;
                 $filter2 = 0;
                 $tmp = explode('.', $key);
@@ -342,6 +388,10 @@ class User extends \Tms\Common
 
     public function getPrivilege($key, $filter1, $filter2)
     {
+        if (empty($this->uid)) {
+            return;
+        }
+
         $options = array_values(self::parsePermissionKey($key));
         $statement = 'userkey = ? AND filter1 = ? AND filter2 = ? AND application = ? AND class = ? AND type = ?';
         array_unshift($options, $this->uid, $filter1, $filter2);
@@ -352,6 +402,22 @@ class User extends \Tms\Common
     public function isAdmin()
     {
         return $this->userinfo['admin'] > 0;
+    }
+
+    public function isRoot()
+    {
+        return isset($this->userinfo['lft']) && $this->userinfo['lft'] === '0';
+    }
+
+    public function isParent($child_id)
+    {
+        $parent = $this->db->nsmGetParent(
+            'parent.id',
+            '(SELECT * FROM table::user)',
+            '(SELECT * FROM table::user WHERE id = :id)',
+            ['id' => $child_id]
+        );
+        return $this->uid === $parent;
     }
 
     /**
@@ -375,5 +441,104 @@ class User extends \Tms\Common
         $midparent = '(SELECT * FROM table::user)';
 
         return $this->db->nsmGetChildren($columns, $parent, $midparent, $midparent, 'AND children.id IS NOT NULL', ['userkey' => $id]);
+    }
+
+    /**
+     * Save user alias data.
+     *
+     * @return bool
+     */
+    protected function saveAlias()
+    {
+        $id = $this->request->POST('id');
+        $check = (empty($id)) ? 'create' : 'update';
+        $this->checkPermission('user.'.$check);
+
+        $post = $this->request->post();
+
+        $table = 'user';
+        $skip = ['id', 'alias', 'admin', 'create_date', 'modify_date'];
+
+        $valid = [];
+        $valid[] = ['vl_fullname', 'fullname', 'empty'];
+        $valid[] = ['vl_email', 'email', 'empty'];
+        if (empty($post['id'])) {
+            $valid[] = ['vl_uname', 'uname', 'empty'];
+        }
+
+        if (!$this->validate($valid)) {
+            return false;
+        }
+        $this->db->begin();
+
+        $fields = $this->db->getFields($this->db->TABLE($table));
+        //$permissions = [];
+        $save = [];
+        $raw = [];
+        foreach ($fields as $field) {
+            if (in_array($field, $skip)) {
+                continue;
+            }
+            if (isset($post[$field])) {
+                if ($field === 'upass') {
+                    if (!empty($post[$field])) {
+                        $save[$field] = \P5\Security::encrypt($post[$field], '', $this->app->cnf('global:password_encrypt_algorithm'));
+                    }
+                    continue;
+                }
+                $save[$field] = $post[$field];
+            }
+        }
+
+        if (empty($post['id'])) {
+
+            $save['alias'] = $this->uid;
+            $save['lft'] = 1000000;
+            $save['rgt'] = 1000000;
+
+            $raw = ['create_date' => 'CURRENT_TIMESTAMP'];
+            if (false !== $result = $this->db->insert($table, $save, $raw)) {
+                $post['id'] = $this->db->lastInsertId(null, 'id');
+            }
+        } else {
+            $result = $this->db->update($table, $save, 'id = ?', [$post['id']], $raw);
+        }
+        if ($result !== false) {
+            $modified = ($result > 0) ? $this->db->modified($table, 'id = ?', [$post['id']]) : true;
+            if ($modified) {
+                // ...
+            } else {
+                $result = false;
+            }
+            if ($result !== false) {
+                return $this->db->commit();
+            }
+        }
+        trigger_error($this->db->error());
+        $this->db->rollback();
+
+        return false;
+    }
+
+    /**
+     * Remove user alias data.
+     *
+     * @return bool
+     */
+    protected function removeAlias($post)
+    {
+        if (empty($post['remove'])) {
+            return true;
+        }
+
+        foreach ((array)$post['remove'] as $key => $value) {
+            if ($value !== 'on') {
+                continue;
+            }
+            if (false === $this->db->delete('user', 'id=?', [$key])) {
+                return false;
+            }
+        }
+        return true;
     }
 }

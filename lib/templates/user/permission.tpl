@@ -17,7 +17,7 @@
         {% for item in nav %}
           <tr>
             <th>{{ item.name }}</th>
-            <td><input type="checkbox" name="perm[{{ item.code }}.exec]" value="1"{% if post.perm[item.code ~ '.exec'] == 1 %} checked{% endif %}></td>
+            <td><input type="checkbox" name="perm[{{ item.code }}.exec]" value="1"{% if post.perm[item.code ~ '.exec'] != '0' %} checked{% endif %}></td>
             <td>-</td>
             <td>-</td>
             <td>-</td>

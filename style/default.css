@@ -258,6 +258,12 @@ a.small-button:hover {
   white-space: nowrap;
   min-width: 160px;
 }
+.fieldset label sup.necessary {
+  color: #03f;
+  font-size: .68rem;
+  margin-right: 4px;
+  vertical-align: text-top;
+}
 .fieldset div.input label {
   background: transparent;
   border: 0 none;
@@ -514,8 +520,7 @@ a.small-button:hover {
   padding: 4px 8px;
   width: 10%
 }
-.list table td:nth-last-child(2),
-.list table td:last-child {
+.list table td.button {
   flex-grow: 0;
   padding: 0;
   width: 50px;
@@ -628,18 +633,39 @@ section.relational-list li > div.line {
   display: flex;
 }
 section.relational-list li > div.line a {
-  display: block;
+  display: flex;
   flex-grow: 1;
   line-height: 1;
   padding: 12px 8px;
 }
+section.relational-list li > div.line a > span {
+  flex-grow: 1;
+  width: 50%;
+}
 section.relational-list li > div.line label {
+  -webkit-user-select: none;
   color: #f00;
+  cursor: pointer;
   line-height: 1;
   padding: 12px 8px;
+  user-select: none;
 }
 section.relational-list li > div.line label input {
   display: none;
+}
+section.relational-list li > div.line label input + span {
+  visibility: hidden;
+}
+section.relational-list li > div.line label:hover input + span {
+  color: #ccc;
+  visibility: visible;
+}
+section.relational-list li > div.line label input:checked + span {
+  color: #f00;
+  visibility: visible;
+}
+section.relational-list li > div.line label.checkmark {
+  color: #666;
 }
 section.relational-list li ul {
   margin: 0 0 0 12px;
