@@ -283,6 +283,13 @@ abstract class Base
             return false;
         }
 
+        // Switch account alias to entity
+        $alias = $this->db->get('alias', 'user', 'uname=?', [$uname]);
+        if (!is_null($alias)) {
+            $this->session->param('alias', $uname);
+            $uname = $this->db->get('uname', 'user', 'id=?', [$alias]);
+        }
+
         if (!is_null($this->request->POST('authEnabler'))) {
             session_regenerate_id(true);
         }
@@ -409,14 +416,31 @@ abstract class Base
     {
         $mode = $this->request->param('mode');
         if (!$mode || !preg_match("/^([0-9a-z]+~)?[0-9a-z\._]+(:[0-9a-z_]+)?(\(.*\))?$/i", $mode)) {
-            $current_application = $this->session->param('application_name');
-            if (!empty($current_application)) {
-                $class = Common::classFromApplicationName($current_application);
-                $mode = method_exists($class, 'getDefaultMode') ? $class::getDefaultMode($this) : $class::DEFAULT_MODE;
-            }
-            elseif (!$mode = $this->cnf('application:default_mode')) {
-                $mode = 'user.response';
-            }
+            $mode = $this->getDefaultMode();
+        }
+
+        return $mode;
+    }
+
+    /**
+     * Default mode
+     *
+     * @return string
+     */
+    public function getDefaultMode()
+    {
+        $current_application = $this->session->param('application_name');
+        if (!empty($current_application)) {
+            $class = Common::classFromApplicationName($current_application);
+            $mode = method_exists($class, 'getDefaultMode') ? $class::getDefaultMode($this) : $class::DEFAULT_MODE;
+        }
+        elseif (!$mode = $this->cnf('application:default_mode')) {
+            $mode = 'user.response';
+        }
+
+        $pluginResponse = $this->execPlugin('overrideDefaultMode', $mode);
+        if (!empty($pluginResponse)) {
+            $mode = array_shift($pluginResponse);
         }
 
         return $mode;

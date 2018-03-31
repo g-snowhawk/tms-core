@@ -10,8 +10,9 @@
               <tr>
                 <td>フルネーム</td>
                 <td>E-mail</td>
-                <td> </td>
-                <td> </td>
+                <td class="button"> </td>
+                <td class="button"> </td>
+                <td class="button"> </td>
               </tr>
             </thead>
             <tbody>
@@ -19,6 +20,11 @@
               <tr>
                 <td>{{ unit.company }}</td>
                 <td>{{ unit.email }}</td>
+{% if apps.hasPermission('system') %}
+                <td class="button"><a href="?mode=user.response:switchUser&id={{ unit.id|url_encode }}">切替</a></td>
+{% else %}
+                <td class="button">&nbsp;</td>
+{% endif %}
 {% if apps.hasPermission('user.update') %}
                 <td class="button"><a href="?mode=user.response:edit&id={{ unit.id|url_encode }}">編集</a></td>
 {% else %}

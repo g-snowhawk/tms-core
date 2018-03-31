@@ -61,6 +61,17 @@ class Response extends \Tms\User
     public function profile()
     {
         $this->request->param('id', $this->uid);
+
+        $alias = $this->session->param('alias');
+        if (!empty($alias)) {
+            $alias_id = $this->db->get('id', 'user', 'uname=?', [$alias]);
+            $this->request->param('id', $alias_id);
+            $this->editAlias();
+        }
+
+        $aliases = $this->db->select('id,fullname,email,uname','user','WHERE alias=?',[$this->uid]);
+        $this->view->bind('aliases', $aliases);
+
         $this->edit(true);
     }
 
@@ -79,7 +90,7 @@ class Response extends \Tms\User
             $post = $this->request->post();
         } else {
             $post = $this->db->get(
-                'id, company, email, url, zip, state, city, town,
+                'id, admin, fullname, company, email, url, zip, state, city, town,
                  address1, address2, tel, fax, create_date, modify_date',
                 'user', 'id = ?', [$this->request->param('id')]
             );
@@ -90,6 +101,12 @@ class Response extends \Tms\User
             );
 
             $perm = [];
+            $applications = $this->navItems();
+            foreach ($applications as $application) {
+                $key = $application['code'].'.exec';
+                $perm[$key] = '1';
+            }
+
             foreach ($stat as $unit) {
                 $tmp = [];
                 $tmp[] = ($unit['filter1'] !== '0') ? $unit['filter1'] : '';
@@ -125,5 +142,91 @@ class Response extends \Tms\User
         }
 
         parent::defaultView('user-edit');
+    }
+
+    /**
+     * Switch user account.
+     */
+    public function switchUser()
+    {
+        $this->checkPermission('system');
+
+        $origin = $this->session->param('origin');
+        if (is_array($origin)) {
+            $origin[] = $this->session->param('uname');
+        } else {
+            $origin = [$this->session->param('uname')];
+        }
+        $this->session->param('origin', $origin);
+
+        $uname = $this->db->get('uname', 'user', 'id=?', [$this->request->param('id')]);
+        $securet = bin2hex(openssl_random_pseudo_bytes(16));
+        $this->session->param('authorized', $this->app->ident($uname, $securet));
+        $this->session->param('uname', $uname);
+        $this->session->param('securet', $securet);
+
+        $this->clearUserInfo();
+
+        $mode = 'user.response';
+        if (!$this->hasPermission('user.read')) {
+            $mode = $this->app->getDefaultMode();
+        }
+
+        \P5\Http::redirect($this->app->systemURI()."?mode=$mode");
+    }
+
+    /**
+     * Rewind user account.
+     */
+    public function rewind()
+    {
+        $origin = $this->session->param('origin');
+        if (is_null($origin)) {
+            return;
+        }
+
+        $uname = array_pop($origin);
+        if (!empty($uname)) {
+            $securet = bin2hex(openssl_random_pseudo_bytes(16));
+            $this->session->param('authorized', $this->app->ident($uname, $securet));
+            $this->session->param('uname', $uname);
+            $this->session->param('securet', $securet);
+
+            if (empty($origin)) {
+                $this->session->clear('origin');
+            } else {
+                $this->session->param('origin', $origin);
+            }
+            $this->clearUserInfo();
+        }
+
+        \P5\Http::redirect($this->app->systemURI().'?mode=user.response');
+    }
+
+    /**
+     * Show alias edit form.
+     */
+    public function editAlias()
+    {
+        $this->checkPermission('user.read');
+
+        if ($this->request->method === 'post') {
+            $post = $this->request->post();
+        } else {
+            $post = $this->db->get(
+                'id, admin, fullname, email, url, zip, state, city, town,
+                 address1, address2, tel, fax, create_date, modify_date',
+                'user', 'id = ?', [$this->request->param('id')]
+            );
+        }
+
+        $this->view->bind('post', $post);
+
+        $globals = $this->view->param();
+        $form = $globals['form'];
+        $form['confirm'] = \P5\Lang::translate('CONFIRM_SAVE_DATA');
+        $this->view->bind('form', $form);
+
+        parent::defaultView('user-alias_edit');
     }
 }

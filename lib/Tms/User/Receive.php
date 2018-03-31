@@ -42,7 +42,19 @@ class Receive extends Response
         if (parent::remove()) {
             $this->session->param('messages', \P5\Lang::translate('SUCCESS_REMOVED'));
         }
-        $url = $this->app->systemURI().'?mode=user.response';
-        \P5\Http::redirect($url);
+        \P5\Http::redirect($this->app->systemURI().'?mode=user.response');
+    }
+
+    /**
+     * Save user alias.
+     */
+    public function saveAlias()
+    {
+        if (parent::saveAlias()) {
+            $this->session->param('messages', \P5\Lang::translate('SUCCESS_SAVED'));
+            $url = $this->app->systemURI().'?mode=user.response:profile';
+            \P5\Http::redirect($url);
+        }
+        $this->edit();
     }
 }

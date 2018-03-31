@@ -9,14 +9,15 @@ SET time_zone = "+00:00";
 DROP TABLE IF EXISTS `TMS_user`;
 CREATE TABLE `TMS_user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `alias` int(11) DEFAULT NULL,
   `uname` varchar(32) NOT NULL,
   `email` varchar(255) DEFAULT NULL,
   `admin` int(11) DEFAULT '0',
   `upass` text,
   `company` varchar(255) DEFAULT NULL,
   `division` varchar(255) DEFAULT NULL,
-  `representative` varchar(255) DEFAULT NULL,
-  `representative_rubi` varchar(255) DEFAULT NULL,
+  `fullname` varchar(255) DEFAULT NULL,
+  `fullname_rubi` varchar(255) DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
   `zip` varchar(8) DEFAULT NULL,
   `state` varchar(50) DEFAULT NULL,
