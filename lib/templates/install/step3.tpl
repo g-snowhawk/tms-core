@@ -9,7 +9,7 @@
       <h1>システムインストール : 管理ユーザー設定</h1>
     </div>
     <form id="TMS-mainform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}">
-{% if err.vl_company == 1 %}
+{% if err.vl_fullname == 1 %}
       <div class="error">
         <i>入力してください</i>
       </div>
@@ -18,9 +18,9 @@
         <i>{{ err.vl_db_error}}</i>
       </div>
 {% endif %}
-      <div class="fieldset{% if err.vl_company == 1 %} invalid{% endif %}">
-        <label for="company">フルネーム</label>
-        <input type="text" name="company" id="company" value="{{ post.company }}">
+      <div class="fieldset{% if err.vl_fullname == 1 %} invalid{% endif %}">
+        <label for="fullname">フルネーム</label>
+        <input type="text" name="fullname" id="fullname" value="{{ post.fullname }}">
       </div>
 {% if err.vl_email == 1 %}
       <div class="error">
