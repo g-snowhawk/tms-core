@@ -317,7 +317,7 @@ class Setup
                     $this->request->POST('upass', $encrypt);
                     $fields = [
                         'uname', 'email', 'upass',
-                        'company', 'division', 'representative', 'representative_rubi', 'url',
+                        'company', 'division', 'fullname', 'fullname_rubi', 'url',
                         'state', 'city', 'town', 'address1', 'address2',
                     ];
                     $save = [];
