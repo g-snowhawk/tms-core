@@ -1,11 +1,10 @@
 @charset "utf-8";
 /**
- * Cascading Style Sheet for Tak-Me CMS
+ * Cascading Style Sheet for Tak-Me System
  *
+ * @authoe PlusFive
  * @copyright 2017 PlusFive (https://www.plus-5.com)
- * @version 2.0.0
  */
-
 html, body {
   margin: 0;
   padding: 0;
@@ -94,6 +93,11 @@ input[type="password"]:focus,
 input[type="text"]:focus,
 textarea:focus {
 }
+input.sourcecode, textarea.sourcecode {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: .75rem;
+  height: 480px;
+}
 
 /**
  * Class style
@@ -117,7 +121,230 @@ a.small-button:hover {
 }
 
 /**
- * Global navigation style
+ * Explorer styles
+ */
+.explorer {
+  bottom: 0;
+  display: flex;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.explorer .explorer-sidebar {
+  border-right: 1px solid #999;
+  height: 100%;
+  position: relative;
+  width: 280px;
+}
+/* sidebar tree */
+.explorer .tree .headline {
+  background: #369;
+  box-sizing: border-box;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 200;
+  left: 0;
+  line-height: 36px;
+  margin: 0;
+  padding: 0 16px;
+  position: absolute;
+  text-align: left;
+  top: 0;
+  width: 100%;
+  white-space: nowrap;
+}
+.explorer .tree nav {
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  overflow-y: auto;
+  padding: 4px 0 0;
+  position: absolute;
+  right: 0;
+  top: 36px;
+}
+.explorer .tree ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.explorer .tree li {
+  font-size: .8rem;
+  line-height: 1.8;
+}
+.explorer .tree p a,
+.explorer .tree li a {
+  background: transparent none no-repeat 100% 50%;
+  background-size: 10px 10px;
+  color: #999;
+  display: block;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.explorer .tree a:hover {
+  background-image: url(icon_tri.svg);
+  color: #369;
+}
+.explorer .tree li a.current {
+  background-image: url(icon_tri_red.svg);
+  color: #000;
+}
+.explorer .tree ul {
+  margin-left: 16px;
+}
+.explorer .tree li a span.entry-count {
+  font-size: smaller;
+  line-height: 1;
+  vertical-align: text-top;
+}
+.TM-resizehandle {
+  bottom: 0;
+  cursor: col-resize;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 3px;
+}
+.explorer .resizable:hover .TM-resizehandle {
+  display: block;
+}
+.explorer .explorer-mainframe {
+  flex-grow: 1;
+  position: relative;
+}
+/* list */
+.explorer-list {
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.explorer-list table {
+  border-collapse: collapse;
+  empty-cells: show;
+  min-width: 100%;
+}
+.explorer-list .headline {
+  background: #69c;
+  box-sizing: border-box;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 200;
+  line-height: 36px;
+  margin: 0;
+  padding: 0 16px;
+  text-align: left;
+}
+.explorer-list .footer-ctrl {
+  background: #678;
+  width: 100%;
+}
+.explorer-list .footer-ctrl a,
+.explorer-list .footer-ctrl span {
+  color: #fff;
+  display: inline-block;
+  font-size: .8rem;
+  line-height: 32px;
+  padding: 0 8px;
+  text-decoration: none;
+  vertical-align: top;
+}
+.explorer-list thead {
+  background: #9cf;
+  border-bottom: 1px solid #ababab;
+}
+.explorer-list table td {
+  box-sizing: border-box;
+  font-size: .9rem;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.explorer-list table td.button {
+  padding: 0;
+}
+.explorer-list table td.button label,
+.explorer-list table td.button a {
+  color: #69c;
+  display: block;
+  line-height: inherit;
+  padding: 4px 8px;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color .5s ease;
+}
+.explorer-list table td.button label:hover,
+.explorer-list table td.button a:hover {
+  background: #69c;
+  color: #fff;
+}
+.explorer-list table td.reddy label,
+.explorer-list table td.reddy a {
+  color: #c66;
+}
+.explorer-list table td.reddy label:hover,
+.explorer-list table td.reddy a:hover {
+  background: #c66;
+}
+.explorer-list table td.spacer {
+  width: 100%;
+}
+.explorer-list table td.wrap {
+  white-space: wrap;
+}
+.explorer-list table thead td {
+  color: #369;
+  font-size: .8rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.explorer-list table tbody tr {
+  background: #fff;
+  transition: background-color .8s ease;
+}
+.explorer-list table tbody tr:nth-child(even) {
+  background: #efefef;
+}
+.explorer-list table tbody tr:hover {
+  background: #ffd;
+}
+.explorer-list table input[name="delete"] {
+  display: none;
+}
+/* Fix table header on vertical scroll styles */
+.ftv-h-scroller {
+  background: #ccc;
+  flex-grow: 1;
+  height: 10%;
+  position: relative;
+  overflow: hidden;
+  overflow-x: auto;
+}
+.ftv-flex-column {
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.ftv-flex-column .ftv-v-scroller {
+  flex-grow: 1;
+  height: 10%;
+  overflow: hidden;
+  overflow-y: auto;
+}
+/* end of Explorer styles */
+
+/**
+ * Global navigation
  */
 #global-nav {
   left: 0;
@@ -184,7 +411,7 @@ a.small-button:hover {
 #global-nav .logo span {
   color: #69c;
 }
-/* Pulldown menu style */
+/* Pulldown menu */
 #global-nav li ul {
   background: rgba(239,239,239,.9);
   border: 1px solid #ccc;
@@ -218,6 +445,7 @@ a.small-button:hover {
   left: auto;
   right: 0;
 }
+/* end of Global navigation */
 
 #backlink {
   font-size: .7rem;
@@ -432,165 +660,6 @@ a.small-button:hover {
   transition: height .5s ease;
 }
 
-/**
- * Data list style
- */
-.list {
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-.list .x-scroller {
-  width: 100%;
-  overflow: hidden;
-  overflow-x: auto;
-}
-.list table {
-  background: #ccc;
-  border-collapse: collapse;
-  bottom: 32px;
-  display: block;
-  empty-cells: show;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 36px;
-  width: 100%;
-}
-.list .headline {
-  background: #69c;
-  box-sizing: border-box;
-  color: #fff;
-  font-size: 1.2rem;
-  font-weight: 200;
-  left: 0;
-  line-height: 36px;
-  margin: 0;
-  padding: 0 16px;
-  position: absolute;
-  text-align: left;
-  top: 0;
-  width: 100%;
-}
-.list thead {
-  background: #9cf;
-  border-bottom: 1px solid #ababab;
-  left: 0;
-  position: absolute;
-  top: 0;
-  width: 100%;
-}
-.list table thead td {
-  color: #369;
-  font-size: .8rem;
-  font-weight: bold;
-  line-height: 20px;
-  padding: 4px 8px 0;
-  white-space: nowrap;
-}
-.list tbody {
-  bottom: 0;
-  left: 0;
-  overflow-x: visible;
-  overflow-y: auto;
-  position: absolute;
-  top: 25px;
-  width: 100%;
-}
-.list table tr {
-  display: flex;
-}
-.list table tbody tr {
-  background: #fff;
-  transition: background-color .8s ease;
-}
-.list table tbody tr:nth-child(even) {
-  background: #efefef;
-}
-.list table tbody tr:hover {
-  background: #ffd;
-}
-.list table td {
-  display: block;
-  box-sizing: border-box;
-  flex-grow: 1;
-  font-size: .9rem;
-  padding: 4px 8px;
-  width: 10%
-}
-.list table td.button {
-  flex-grow: 0;
-  padding: 0;
-  width: 50px;
-}
-/*
-.list table td:last-child {
-  width: 100%;
-}
-.list table thead td {
-  color: #333;
-  font-size: .8rem;
-  line-height: 20px;
-  padding: 4px 8px 0;
-  white-space: nowrap;
-}
-.list table tbody td {
-  color: #000;
-  font-size: .9rem;
-  line-height: 28px;
-  padding: 0 8px;
-}
-*/
-.list table td a {
-  color: #000;
-  text-decoration: none;
-}
-.list .footer-ctrl {
-  background: #678;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  width: 100%;
-}
-.list .footer-ctrl a,
-.list .footer-ctrl span {
-  color: #fff;
-  display: inline-block;
-  font-size: .8rem;
-  line-height: 32px;
-  padding: 0 8px;
-  text-decoration: none;
-  vertical-align: top;
-}
-.list table input[name="delete"] {
-  display: none;
-}
-.list table td.button label,
-.list table td.button a {
-  color: #69c;
-  display: block;
-  line-height: inherit;
-  padding: 4px;
-  text-align: center;
-  text-decoration: none;
-  transition: background-color .5s ease;
-}
-.list table td.button label:hover,
-.list table td.button a:hover {
-  background: #69c;
-  color: #fff;
-}
-.list table td.reddy label,
-.list table td.reddy a {
-  color: #c66;
-}
-.list table td.reddy label:hover,
-.list table td.reddy a:hover {
-  background: #c66;
-}
-
 .metadata {
   color: #999;
   font-size: .7rem;
@@ -675,11 +744,6 @@ section.relational-list p {
   font-size: .8rem;
 }
 
-#section-edit #body {
-  -khtml-user-drag: element;
-  height: 300px;
-}
-
 /* ------------------------------------------------------------ */
 
 /**
@@ -753,271 +817,6 @@ html.install #page-header {
 }
 #signin .err {
   color: #fc0;
-}
-
-/**
- * Only for site page
- */
-.site .wrapper section {
-  border-bottom: 1px dashed #999;
-  margin: 40px auto;
-  padding: 0 16px;
-}
-.site .wrapper section h2 {
-  font-size: 1.2rem;
-  font-weight: 200;
-  line-height: 1.2;
-  margin: 0;
-}
-.site .wrapper .current {
-  border-color: #69c;
-}
-.site .wrapper .current h2:before {
-  color: #69c;
-  content: '★';
-}
-.site .wrapper section p {
-  color: #999;
-  font-size: .7rem;
-  line-height: 1.2;
-  margin: 0;
-}
-.site .wrapper .controls {
-  font-size: 0;
-  margin: 8px 0;
-  text-align: right;
-}
-.site .wrapper .controls label,
-.site .wrapper .controls a {
-  color: #666;
-  border: 1px solid #ccc;
-  display: inline-block;
-  font-size: .8rem;
-  line-height: 24px;
-  margin: 0 0 0 4px;
-  min-width: 60px;
-  padding: 0px 12px;
-  text-align: center;
-  text-decoration: none;
-}
-.site .wrapper .current .controls label,
-.site .wrapper .controls label:hover,
-.site .wrapper .controls a:hover {
-  background: #69c;
-  border-color: #69c;
-  color: #fff;
-}
-.site .wrapper .controls label input[type="radio"] {
-  display: none;
-}
-.site .wrapper .create {
-  margin: 12px;
-}
-.site .wrapper .create a {
-  font-size: .8rem;
-  text-decoration: none;
-  color: #999;
-}
-.site .wrapper .create a:hover {
-  color: #69c;
-}
-
-/**
- * Only for entry default
- */
-#entry-default .two-columns {
-  bottom: 0;
-  display: flex;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-#entry-default .left-column {
-  border-right: 1px solid #999;
-  height: 100%;
-  position: relative;
-  width: 280px;
-}
-.TM-resizehandler {
-  bottom: 0;
-  cursor: col-resize;
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 3px;
-}
-.resizable:hover .TM-resizehandler {
-  display: block;
-}
-#entry-default .right-column {
-  flex-grow: 1;
-  position: relative;
-}
-#entry-default #category-form {
-  background: #369;
-  bottom: 32px;
-  box-sizing: border-box;
-  left: 0;
-  max-width: 460px;
-  overflow: hidden;
-  padding: 0 16px;
-  position: absolute;
-  transition: height .4s ease-in;
-  width: 100%;
-}
-#entry-default #category-form h2 {
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 200;
-  margin: 4px 0;
-}
-#entry-default #category-form .fieldset {
-  margin: 4px 0;
-}
-#entry-default #category-form .fieldset label {
-  width: 90px;
-}
-#entry-default #category-form .form-footer {
-  margin: 4px 0;
-  text-align: right;
-}
-#entry-default .list td:first-child {
-  padding: 4px 8px;
-}
-#entry-default .list tbody td:first-child {
-  padding: 0 8px;
-}
-#entry-default .list tbody td:first-child a {
-  background: transparent none no-repeat 0px 50%;
-  background-size: 20px 20px;
-  display: inline-block;
-  padding: 4px 0px 4px 24px;
-}
-#entry-default .list tbody tr.category td:first-child a {
-  background-image: url(icon_folder.svg);
-}
-
-#entry-edit #body {
-  -khtml-user-drag: element;
-  height: 300px;
-}
-#entry-edit #previewScreen {
-  background-color: #fff;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 25px;
-  z-index: 8;
-}
-#entry-edit #previewScreen iframe {
-  border: 0 none;
-  height: 100%;
-  width: 100%;
-}
-#entry-edit #previewControler {
-  bottom: 0;
-  left: 0;
-  padding: 8px;
-  position: absolute;
-  right: 0;
-  text-align: center;
-  z-index: 9;
-}
-#entry-edit #previewControler input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-color: rgba(0,0,0,.5);
-  border: 0 none;
-  border-radius: 4px;
-  box-sizing: border-box;
-  color: #fff;
-  font-size: .9rem;
-  line-height: 28px;
-  margin: 4px 2px;
-  min-width: 120px;
-  padding: 0px 12px;
-  transition: background-color .5s ease;
-}
-#entry-edit #previewControler input:focus,
-#entry-edit #previewControler input:hover {
-  background-color: rgba(0,0,0,.8);
-}
-
-/**
- * Folder tree styles
- */
-.tree .headline {
-  background: #369;
-  box-sizing: border-box;
-  color: #fff;
-  font-size: 1.2rem;
-  font-weight: 200;
-  left: 0;
-  line-height: 36px;
-  margin: 0;
-  padding: 0 16px;
-  position: absolute;
-  text-align: left;
-  top: 0;
-  width: 100%;
-  white-space: nowrap;
-}
-.tree nav {
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
-  overflow-y: auto;
-  padding: 4px 0 0;
-  position: absolute;
-  right: 0;
-  top: 36px;
-}
-.tree ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-.tree li {
-  font-size: .8rem;
-  line-height: 1.8;
-}
-.tree p a,
-.tree li a {
-  background: transparent none no-repeat 100% 50%;
-  background-size: 10px 10px;
-  color: #999;
-  display: block;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.tree a:hover {
-  background-image: url(icon_tri.svg);
-  color: #369;
-}
-.tree li a.current {
-  background-image: url(icon_tri_red.svg);
-  color: #000;
-}
-.tree ul {
-  margin-left: 16px;
-}
-.tree li a span.entry-count {
-  font-size: smaller;
-  line-height: 1;
-  vertical-align: text-top;
-}
-
-/**
- * only for template edit page
- */
-#template-edit #sourcecode {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: .75rem;
-  height: 480px;
 }
 
 /**
@@ -1119,11 +918,6 @@ html.install #page-header {
   position: absolute;
   right: 0;
   text-align: center;
-}
-
-#category-edit #author_date {
-  margin: 0;
-  padding: 2px;
 }
 
 nav.insert {
