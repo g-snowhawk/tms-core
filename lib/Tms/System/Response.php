@@ -37,6 +37,8 @@ class Response extends \Tms\System
      */
     public function defaultView()
     {
+        $this->checkPermission('root');
+
         $exists = [];
         $packages = [];
         $n = 0;
@@ -110,6 +112,8 @@ class Response extends \Tms\System
      */
     public function plugins()
     {
+        $this->checkPermission('root');
+
         $include_path = explode(PATH_SEPARATOR, ini_get('include_path'));
         $exists = [];
         $packages = [];

@@ -23,6 +23,11 @@ require_once 'Tms/Base.php';
  */
 class App extends Base
 {
+    /** 
+     * Current version
+     */
+    const VERSION = '1.0.0';
+
     /**
      * Root.
      *
