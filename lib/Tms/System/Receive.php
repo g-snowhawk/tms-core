@@ -117,7 +117,7 @@ class Receive extends Response
             $this->session->param('messages', \P5\Lang::translate('SUCCESS_SETUP'));
         }
 
-        $url = $this->app->systemURI().'?mode=system.response';
+        $url = $this->app->systemURI().'?mode=system.response:plugins';
         \P5\Http::redirect($url);
     }
 

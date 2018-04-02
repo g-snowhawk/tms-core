@@ -18,6 +18,9 @@
               {% include template %}
             {% endif %}
             <li><a href="?mode=user.response:profile">プロフィール編集</a></li>
+            {% if session.origin is defined %}
+              <li><a href="?mode=user.response:rewind">アカウント復帰</a></li>
+            {% endif %}
             <li><hr><a href="?logout" id="signout">サインアウト</a></li>
           </ul>
         </li>
@@ -48,9 +51,11 @@
               {% if apps.hasPermission('user.read') %} 
                 <li><a href="?mode=user.response">ユーザー管理</a></li>
               {% endif %}
-              <li><a href="?mode=system.response">拡張機能管理</a></li>
-              <li><a href="?mode=system.response:plugins">プラグイン管理</a></li>
-              <li><a href="?mode=system.response:log">システムログ</a></li>
+              {% if apps.hasPermission('root') %} 
+                <li><a href="?mode=system.response">拡張機能管理</a></li>
+                <li><a href="?mode=system.response:plugins">プラグイン管理</a></li>
+                <li><a href="?mode=system.response:log">システムログ</a></li>
+              {% endif %}
             </ul>
           </li>
         {% endif %}
