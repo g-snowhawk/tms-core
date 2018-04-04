@@ -21,13 +21,17 @@ FixTheadOnVerticalScroll.prototype.init = function(ev) {
     if (this.inited) {
         return;
     }
+    window.addEventListener('resize', this.onResize, false);
+    this.fixAll();
+    this.inited = true;
+};
+
+FixTheadOnVerticalScroll.prototype.fixAll = function() {
     var i, max;
     var elements = document.getElementsByClassName(this.cnTable);
     for (i = 0, max = elements.length; i < max; i++) {
         this.fix(elements[i]);
     }
-    window.addEventListener('resize', this.onResize, false);
-    this.inited = true;
 };
 
 FixTheadOnVerticalScroll.prototype.fix = function(table) {
@@ -52,6 +56,13 @@ FixTheadOnVerticalScroll.prototype.fix = function(table) {
     verticalScroller.appendChild(table);
 
     this.align(horizontalScroller);
+};
+
+FixTheadOnVerticalScroll.prototype.alignAll = function(horizontalScroller) {
+    var elements = document.getElementsByClassName(this.cnHorizontalScroller);
+    for (i = 0, max = elements.length; i < max; i++) {
+        this.align(elements[i]);
+    }
 };
 
 FixTheadOnVerticalScroll.prototype.align = function(horizontalScroller) {
@@ -80,11 +91,7 @@ FixTheadOnVerticalScroll.prototype.align = function(horizontalScroller) {
 };
 
 FixTheadOnVerticalScroll.prototype.onResize = function(ev) {
-    var instance = window.fixTheadOnVerticalScroll;
-    var elements = document.getElementsByClassName(instance.cnHorizontalScroller);
-    for (i = 0, max = elements.length; i < max; i++) {
-        instance.align(elements[i]);
-    }
+    window.fixTheadOnVerticalScroll.alignAll();
 };
 
 FixTheadOnVerticalScroll.prototype.onLoad = function(scope, func) {

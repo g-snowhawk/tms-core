@@ -1028,3 +1028,77 @@ div.alert section h2 {
   white-space: nowrap;
   width: 100%;
 }
+
+/*==============================================*
+ * Subform styles
+ *----------------------------------------------*/
+#subform-container {
+  background: #efefef;
+  bottom: 0;
+  box-shadow: 0 1px 6px 0 rgba(0,0,0,.3);
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  overflow: auto;
+  position: fixed;
+  top: 25px;
+  z-index: 99;
+}
+#subform-container.trans-left {
+  transition: left .5s ease;
+}
+#subform-container #cancel-subform a {
+  color: #36c;
+  display: inline-block;
+  font-size: .8rem;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+#subform-container form {
+  box-sizing: border-box;
+  flex-grow: 1;
+  height: 10%;
+  margin: 0;
+  width: 320px;
+  padding: 24px 12px 16px;
+}
+#subform-container form h1 {
+  font-size: 1.4rem;
+  margin: 0 0 1em;
+}
+#subform-container .fieldset {
+  display: block;
+  margin: 12px auto;
+}
+#subform-container .fieldset label {
+  background: transparent;
+  border: 0 none transparent;
+  display: block;
+  font-size: .8rem;
+  font-weight: 400;
+  padding: 0 0 0 4px;
+  text-align: initial;
+  vertical-align: initial;
+  white-space: nowrap;
+  min-width: auto;
+}
+#subform-container .fieldset label:after {
+  content: '';
+}
+#subform-container .fieldset div.input,
+#subform-container .fieldset input.sametext,
+#subform-container .fieldset input[type="password"],
+#subform-container .fieldset input[type="text"] {
+  border-left: 1px solid #ccc;
+  border-radius: 4px;
+}
+/* subform input error style */
+#subform-container .invalid input.sametext,
+#subform-container .invalid input[type="text"],
+#subform-container .invalid input[type="password"],
+#subform-container .invalid select,
+#subform-container .invalid textarea,
+#subform-container .invalid label {
+  border-color: #f99;
+}
+/* end of Subform stsyles */

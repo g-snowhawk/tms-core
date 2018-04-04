@@ -1,3 +1,5 @@
+{% if not apps.isAjax %}
+
 {% if block('head') is defined %}
   {% include 'header.tpl' with {head: block('head')} %}
 {% else %}
@@ -63,10 +65,16 @@
     </nav>
   </header>
   <div id="container">
+
+{% endif %}
+
     <form id="TMS-mainform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}"{% if form.confirm %} data-confirm="{{ form.confirm|url_encode }}"{% endif %}>
-      <input type="hidden" name="stab" value="{{ stab }}">
+      <input type="hidden" name="stub" value="{{ stub }}">
       {% block main %}{% endblock %}
       {% include 'nochange.tpl' %}
     </form>
+
+{% if not apps.isAjax %}
     {% block subform %}{% endblock %}
   </div>
+{% endif %}

@@ -34,6 +34,7 @@ class Ja extends \P5\Lang
     protected $SESSION_LIMIT_ERROR = '前回の操作から%s秒以上経過しました。';
     protected $PERMISSION_DENIED = 'リクエストされた操作に対する権限がありません';
     protected $ILLEGAL_OPERATION = '不正な操作が検出されました';
+    protected $FAILED_SAVE = 'データ更新に失敗しました。';
 
     /**
      * NOTICE.
