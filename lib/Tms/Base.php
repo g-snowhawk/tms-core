@@ -278,7 +278,7 @@ abstract class Base
             $this->view->bind('post', $post);
             $header = array('id' => 'signin', 'title' => \P5\Lang::translate('TITLE_SIGNIN'));
             $this->view->bind('header', $header);
-            $this->view->bind('stab', $this->csrf());
+            $this->view->bind('stub', $this->csrf());
 
             return false;
         }
@@ -568,5 +568,10 @@ abstract class Base
         }
         $parsed_url = parse_url($url);
         return $parsed_url['path'];
+    }
+
+    public static function isAjax()
+    {
+        return \P5\Environment::server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest';
     }
 }

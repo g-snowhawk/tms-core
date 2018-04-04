@@ -85,7 +85,7 @@ class App extends Base
 
         // Signout
         if ($_SERVER['QUERY_STRING'] === 'logout' ||
-            ($this->request->method === 'post' && $this->request->POST('stab') !== $this->session->param('ticket'))
+            ($this->request->method === 'post' && $this->request->POST('stub') !== $this->session->param('ticket'))
         ) {
             $this->logger->log('Signout');
             $this->setcookie('limit', '', time() - 3600);
@@ -145,7 +145,7 @@ class App extends Base
                 'enctype' => 'application/x-www-form-urlencoded',
             )
         );
-        $this->view->bind('stab', $this->csrf());
+        $this->view->bind('stub', $this->csrf());
 
         list($instance, $function, $args) = $this->instance($mode);
 

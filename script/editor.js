@@ -244,12 +244,12 @@ TM_Editor.prototype.delete = function(ev) {
         var hash = el.href.substr(el.href.indexOf('#'));
         var id = hash.substr(hash.indexOf(':') + 1);
 
-        var token = document.forms[0].stab.value;
+        var token = document.forms[0].stub.value;
         var action = document.forms[0].action;
 
         var data = new FormData();
         data.append('mode', 'cms.entry.receive:ajaxDeleteImage');
-        data.append('stab', token);
+        data.append('stub', token);
         data.append('id', id);
 
         var xhr = new XMLHttpRequest();
@@ -279,15 +279,15 @@ TM_Editor.prototype.imageSelected = function(ev) {
     var action;
     for(i = 0; i < document.forms.length; i++){
         var form = document.forms[i];
-        if(form == fm || !form.stab) continue;
-        token = form.stab.value;
+        if(form == fm || !form.stub) continue;
+        token = form.stub.value;
         action = form.action;
         break;
     }
 
     var data = new FormData(fm);
     data.append('mode', 'cms.entry.receive:ajaxUploadImage');
-    data.append('stab', token);
+    data.append('stub', token);
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', action, true);
