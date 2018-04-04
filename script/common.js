@@ -355,17 +355,49 @@ TM_Accordion.prototype.onClick = function(ev) {
 };
 
 /**
+ * XMLHttpRequest class
+ */
+var TM_XMLHttpRequest = function() {
+    this.xhr = undefined;
+    this.callback = undefined;
+    this.method = undefined;
+    this.location = undefined;
+    this.async = undefined;
+    this.headers = {};
+};
+TM_XMLHttpRequest.prototype.init = function(method, location, async, callback) {
+    this.headers = {};
+    this.method = method;
+    this.location = location;
+    this.async = async;
+    this.xhr = new XMLHttpRequest();
+    this.xhr.addEventListener('loadend', callback, false);
+};
+TM_XMLHttpRequest.prototype.header = function(key, value) {
+    this.headers[key] = value;
+};
+TM_XMLHttpRequest.prototype.send = function(data) {
+    this.xhr.open(this.method, this.location, this.async);
+    this.xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    for (var key in this.headers) {
+        this.xhr.setRequestHeader(key, this.headers[key]);
+    }
+    this.xhr.send(data);
+};
+
+/**
  * A common set of functions
  *
  * version: 1.0.0
  */
 var  TM_Common = function() {
     this.onLoad(this, 'init');
-    this.debug     = 1;
-    this.form      = new TM_Form();
-    this.menu      = new TM_Menu();
+    this.debug = 1;
+    this.form = new TM_Form();
+    this.menu = new TM_Menu();
     this.accordion = new TM_Accordion();
-    this.resizer   = new TM_Resizer();
+    this.resizer = new TM_Resizer();
+    this.xhr = new TM_XMLHttpRequest();
 };
 TM_Common.prototype.init = function(evn) {
     this.form.init();
@@ -467,8 +499,9 @@ TM_Common.prototype.errorHandler = function(evn) {
     evn.preventDefault();
     var filename = evn.filename.replace(/^.*?\/\/[^\/]+/, '');
     var msg = evn.message + ' at ' + filename + ':' + evn.lineno + ',' + evn.colno;
-    if(TM.debug === 1) alert(msg);
-    else console.log(msg);
+    console.error(msg);
+    //if(TM.debug === 1) alert(msg);
+    //else console.log(msg);
 };
 TM_Common.prototype.onLoad = function(scope, func) {
     addEventListener('error', this.errorHandler, false);

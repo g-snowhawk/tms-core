@@ -61,6 +61,7 @@ abstract class Common
     public function __isset($name)
     {
         switch ($name) {
+            case 'isAjax': return true;
             case 'view': return true;
         }
 
@@ -79,6 +80,7 @@ abstract class Common
         switch ($name) {
             case 'db': return $this->app->db;
             case 'env': return $this->app->env;
+            case 'isAjax': return \Tms\Base::isAjax();
             case 'request': return $this->app->request;
             case 'session': return $this->app->session;
             case 'view': return $this->app->view;
@@ -246,5 +248,72 @@ abstract class Common
                 return call_user_func_array([$inst, $func], $args);
             }
         }
+    }
+
+    protected function postReceived($message, $status, $response, array $options = [])
+    {
+        foreach ($options as $option) {
+            if (is_callable($option[0])) {
+                call_user_func_array($option[0], (array)$option[1]);
+            }
+        }
+
+        // Response to javascript XMLHttpRequest
+        if ($this->isAjax) {
+            $content_type = 'text/plain';
+            $result = [
+                'status' => $status,
+                'message' => $message,
+            ];
+
+            $ret = call_user_func_array($response[0], (array)$response[1]);
+            $result['response'] = (is_array($ret))
+                ? $ret
+                : ['type' => 'replace', 'source' => $ret];
+
+            switch ($this->request->param('returntype')) {
+                case 'json':
+                    $content_type = 'application/json';
+                    $source = json_encode($result);
+                    break;
+                case 'xml':
+                    $content_type = 'text/xml';
+                    break;
+            }
+            header("Content-type: $content_type; charset=utf-8");
+            echo $source;
+            exit;
+        }
+
+        // Response to normal HttpRequest
+        if ($status === 0) {
+            $this->session->param('messages', $message);
+        }
+        call_user_func_array($response[0], (array)$response[1]);
+    }
+
+    protected function redirect($mode, $type = 'redirect')
+    {
+        $mode = filter_var($mode, FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
+        $url = $this->app->systemURI().'?mode='.urlencode($mode);
+        if (!$this->isAjax) {
+            \P5\Http::redirect($url);
+        }
+
+        $response = ['type' => $type, 'source' => $url];
+
+        if ($type !== 'redirect') {
+            list($instance, $function, $args) = $this->app->instance($mode);
+            try {
+                $instance->init();
+                $response['source'] = (is_null($args))
+                    ? $instance->$function()
+                    : call_user_func_array([$instance, $function], $args);
+            } catch (\Exception $e) {
+                trigger_error($e->getMessage());
+            }
+        }
+
+        return $response;
     }
 }

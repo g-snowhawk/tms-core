@@ -4,7 +4,7 @@
     <h1>Tak-Me <span>System</span></h1>
   </div>
   <form id="TMS-mainform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}">
-    <input type="hidden" name="stab" value="{{ stab }}">
+    <input type="hidden" name="stub" value="{{ stub }}">
     <div class="input">
       <input type="text" name="uname" id="uname" placeholder="ユーザー名" value="{{ post.uname }}">
     </div>
