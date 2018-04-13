@@ -132,9 +132,9 @@ class Receive extends Response
         $start = $this->request->POST('start_cookie');
         $end = $this->request->POST('end_cookie');
         setcookie($end, $_COOKIE[$start]);
-        header("Content-Disposition: attachment; filename=\"$filename\"");
-        header("Content-length: $content_length");
-        header('Content-Type: text/plain; charset=utf-8');
+        \P5\Http::responseHeader("Content-Disposition: attachment; filename=\"$filename\"");
+        \P5\Http::responseHeader("Content-length: $content_length");
+        \P5\Http::responseHeader('Content-Type: text/plain; charset=utf-8');
         readfile($config_file);
         unlink($config_file);
         exit;

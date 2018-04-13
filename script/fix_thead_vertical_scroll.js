@@ -50,15 +50,17 @@ FixTheadOnVerticalScroll.prototype.fix = function(table) {
     verticalScroller.className = this.cnVerticalScroller;
 
     var thead = table.querySelector('thead');
-    fixedHeader.appendChild(thead);
+    fixedHeader.appendChild(thead.cloneNode(true));
 
     table.parentNode.insertBefore(horizontalScroller, table);
     verticalScroller.appendChild(table);
+    table.style.marginTop = '-' + thead.offsetHeight + 'px';
+    thead.style.visibility = 'hidden';
 
     this.align(horizontalScroller);
 };
 
-FixTheadOnVerticalScroll.prototype.alignAll = function(horizontalScroller) {
+FixTheadOnVerticalScroll.prototype.alignAll = function() {
     var elements = document.getElementsByClassName(this.cnHorizontalScroller);
     for (i = 0, max = elements.length; i < max; i++) {
         this.align(elements[i]);

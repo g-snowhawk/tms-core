@@ -1,5 +1,10 @@
 {% extends "master.tpl" %}
 
+{% block head %}
+  <script src="script/subform.js"></script>
+  <script src="script/user_alias.js"></script>
+{$ endblock %}
+
 {% block main %}
   {% if post.profile != 1 %}
     <p id="backlink"><a href="?mode=user.response">一覧に戻る</a></p>

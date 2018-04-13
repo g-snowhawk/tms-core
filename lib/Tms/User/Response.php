@@ -35,17 +35,11 @@ class Response extends \Tms\User
     /**
      * Default view.
      */
-    public function defaultView()
+    public function defaultView($restriction = null)
     {
         $this->checkPermission('user.read');
 
-        $ret = $this->db->nsmGetDecendants(
-            'children.id, children.company, children.email',
-            '(SELECT * FROM table::user WHERE id = ?)',
-            '(SELECT * FROM table::user WHERE restriction IS NULL)',
-            [$this->uid]
-        );
-        $this->view->bind('users', $ret);
+        $this->view->bind('users', parent::getUsers($restriction));
 
         $globals = $this->view->param();
         $form = $globals['form'];
@@ -172,6 +166,8 @@ class Response extends \Tms\User
             $mode = $this->app->getDefaultMode();
         }
 
+        $this->app->execPlugin('afterSwitchUser');
+
         \P5\Http::redirect($this->app->systemURI()."?mode=$mode");
     }
 
@@ -228,5 +224,57 @@ class Response extends \Tms\User
         $this->view->bind('form', $form);
 
         parent::defaultView('user-alias_edit');
+    }
+
+    /**
+     * Show alias edit subform with Ajax.
+     */
+    public function editAliasSubform()
+    {
+        $status = $this->hasPermission('user.read');
+
+        if ($this->request->method === 'post') {
+            $post = $this->request->post();
+        } else {
+            $post = $this->db->get(
+                'id, admin, fullname, email, url, zip, state, city, town,
+                 address1, address2, tel, fax, create_date, modify_date',
+                'user', 'id = ?', [$this->request->param('id')]
+            );
+        }
+        $this->view->bind('post', $post);
+
+        $response = $this->view->render('user/alias_edit_subform.tpl', true);
+
+        $json = [
+            'status' => status,
+            'response' => $response,
+        ];
+
+        header('Content-type: text/plain; charset=utf-8');
+        echo json_encode($json);
+        exit;
+
+        //$globals = $this->view->param();
+        //$form = $globals['form'];
+        //$form['confirm'] = \P5\Lang::translate('CONFIRM_SAVE_DATA');
+        //$this->view->bind('form', $form);
+
+        //parent::defaultView('user-alias_edit');
+    }
+
+    public function aliasList()
+    {
+
+        $aliases = $this->db->select('id,fullname,email,uname','user','WHERE alias=?',[$this->uid]);
+        $this->view->bind('aliases', $aliases);
+
+        $json = [
+            'status' => 0,
+            'source' => $this->view->render('user/alias_list.tpl', true)
+        ];
+        header('Content-type: text/plain; charset=utf-8');
+        echo json_encode($json);
+        exit;
     }
 }

@@ -88,6 +88,13 @@ abstract class Base
     private $logger;
 
     /**
+     * CLI running
+     *
+     * @var bool
+     */
+    public $isCLI = false;
+
+    /**
      * Error Messges.
      *
      * @var array
@@ -483,6 +490,10 @@ abstract class Base
      */
     public function setcookie($name, $value, $expire = 0, $path = null, $domain = null, $secure = false, $http_only = true)
     {
+        if ($this->isCLI) {
+            return;
+        }
+
         if (is_null($path)) {
             $uri = parse_url($this->env->server('request_uri'));
             $path = preg_replace('/\/+$/', '/', dirname($uri['path']));
@@ -545,9 +556,9 @@ abstract class Base
             break;
         }
 
-        $plugins = $this->cnf('plugins:paths');
+        $plugins = array_unique((array)$this->cnf('plugins:paths'));
         $result = [];
-        foreach ((array)$plugins as $plugin) {
+        foreach ($plugins as $plugin) {
             $class = "\\$plugin";
             if (method_exists($class, $func)) {
                 $inst = new $class($this);

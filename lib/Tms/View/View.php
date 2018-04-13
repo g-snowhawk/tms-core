@@ -168,9 +168,9 @@ class View implements View_Interface
             return $html;
         }
 
-        header('X-Frame-Options: SAMEORIGIN');
-        header('X-XSS-Protection: 1');
-        header('X-Content-Type-Options: nosniff');
+        \P5\Http::responseHeader('X-Frame-Options', 'SAMEORIGIN');
+        \P5\Http::responseHeader('X-XSS-Protection', '1');
+        \P5\Http::responseHeader('X-Content-Type-Options', 'nosniff');
 
         echo $html;
         exit;

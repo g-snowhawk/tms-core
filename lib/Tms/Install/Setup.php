@@ -327,7 +327,7 @@ class Setup
 
                     $save['admin'] = '1';
                     $save['lft'] = '0';
-                    $save['rgt'] = '999999';
+                    $save['rgt'] = '1';
 
                     $raw = [];
                     $raw['create_date'] = 'CURRENT_TIMESTAMP';
@@ -350,7 +350,7 @@ class Setup
                                 $tmp_file = $this->request->POST('tmp_file');
                                 if (@unlink($tmp_file)) {
                                     $this->session->destroy();
-                                    header('Location:'.$this->cnf['global']['base_url']);
+                                    \P5\Http::redirect($this->cnf['global']['base_url']);
                                     exit;
                                 }
                             }
@@ -381,9 +381,9 @@ class Setup
                 $contents = implode('', array('<', '?php', PHP_EOL, $contents));
                 $filename = basename($this->config);
                 $content_length = strlen($contents);
-                header("Content-Disposition: attachment; filename=\"$filename\"");
-                header("Content-length: $content_length");
-                header('Content-Type: text/plain; charset=utf-8');
+                \P5\Http::responseHeader("Content-Disposition: attachment; filename=\"$filename\"");
+                \P5\Http::responseHeader("Content-length: $content_length");
+                \P5\Http::responseHeader('Content-Type: text/plain; charset=utf-8');
                 echo $contents;
                 @unlink($tmp_file);
                 exit;
