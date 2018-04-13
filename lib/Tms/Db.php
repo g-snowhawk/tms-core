@@ -28,7 +28,7 @@ class Db extends \P5\Db
      *
      * @var string
      */
-    private $previx;
+    private $prefix;
 
     /**
      * Object Constructor.
@@ -56,7 +56,7 @@ class Db extends \P5\Db
 
     public function setTablePrefix($prefix)
     {
-        return $this->previx = $prefix;
+        return $this->prefix = $prefix;
     }
 
     /**
@@ -68,7 +68,7 @@ class Db extends \P5\Db
      */
     public function TABLE($key)
     {
-        return $this->previx.strtolower($key);
+        return $this->prefix.strtolower($key);
     }
 
     /**
@@ -291,6 +291,16 @@ class Db extends \P5\Db
     }
 
     /**
+     * record count of execute query.
+     *
+     * @return int
+     */
+    public function recordCount($sql = '')
+    {
+        return parent::recordCount(str_replace('table::', $this->prefix, $sql));
+    }
+
+    /**
      * Execute query and return.
      *
      * @param string $statement
@@ -365,10 +375,11 @@ class Db extends \P5\Db
      * @param string $columns
      * @param string $parent
      * @param string $children
+     * @param string $extensions
      *
      * @return mixed
      */
-    public static function nsmDecendantsSQL($columns, $parent, $children = null)
+    public static function nsmDecendantsSQL($columns, $parent, $children = null, $extensions = '')
     {
         if (is_null($children)) {
             $children = $parent;
@@ -379,7 +390,7 @@ class Db extends \P5\Db
                         LEFT OUTER JOIN $children children
                                      ON children.lft > parent.lft
                                     AND children.lft < parent.rgt
-                  WHERE children.id IS NOT NULL";
+                  WHERE children.id IS NOT NULL$extensions";
     }
 
     /**
@@ -388,12 +399,13 @@ class Db extends \P5\Db
      * @param string $columns
      * @param string $parent
      * @param string $children
+     * @param string $extensions
      *
      * @return mixed
      */
-    public function nsmGetDecendants($columns, $parent, $children = null, $options = null)
+    public function nsmGetDecendants($columns, $parent, $children = null, $options = null, $extensions = '')
     {
-        return $this->getAll(self::nsmDecendantsSQL($columns, $parent, $children), $options);
+        return $this->getAll(self::nsmDecendantsSQL($columns, $parent, $children, $extensions), $options);
     }
 
     /**
@@ -678,5 +690,24 @@ class Db extends \P5\Db
         }
 
         return $this->exec(self::build($sql, $options));
+    }
+
+    /**
+     * Get field list.
+     *
+     * @param string $table    Table Name
+     * @param bool   $property
+     * @param bool   $comment
+     *
+     * @return mixed
+     */
+    public function getFields($table, $property = false, $comment = false)
+    {
+        // compatible
+        if (strpos($table, $this->prefix) !== 0) {
+            $table = $this->TABLE($table);
+        }
+
+        return parent::getFields($table, $property, $comment);
     }
 }

@@ -15,5 +15,5 @@
     {% endfor %}
     <ul>
   </nav>
-  <p><a href="?mode=user.response:editAlias">+代替アカウント追加</a></p>
+  <p><a href="?mode=user.response:editAliasSubform" class="subform-orpener">+代替アカウント追加</a></p>
 </section>

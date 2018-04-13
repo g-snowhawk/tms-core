@@ -13,9 +13,14 @@
  */
 function Subform() {
     this.inited = false;
+    this.sealedID = 'subform-sealed';
+    this.cancelButtonID = 'cancel-subform-button';
     this.containerID = 'subform-container';
     this.cnTransition = 'trans-left';
     this.subformWidth = undefined;
+    this.pollingTimer = undefined;
+    this.pollingInterval = 10000;
+    this.finally = undefined;
     this.onLoad(this, 'init');
 }
 
@@ -26,25 +31,44 @@ Subform.prototype.show = function(container) {
     container.style.left = '0';
 };
 
-Subform.prototype.endTransition = function(container) {
+Subform.prototype.endOpenTransition = function(container) {
+    var instance = TM.subform;
     if (container.offsetLeft < 0) {
         container.parentNode.removeChild(container);
+        var sealed = document.getElementById(this.sealedID);
+        sealed.parentNode.removeChild(sealed);
+
+        if (instance.finally) {
+            TM.apply(instance.finally.function, instance.finally.arguments);
+            instance.finally = undefined;
+        }
     }
     else {
-        var cancelSubformButton = document.getElementById('cancel-subform-button');
-        cancelSubformButton.addEventListener('click', this.listener, false);
+        instance.setListenerButtons();
     }
 };
 
-Subform.prototype.create = function(json) {
-    var container = document.body.appendChild(document.createElement('div'));
-    container.id = this.containerID;
-    container.innerHTML = json.response;
+Subform.prototype.setListenerButtons = function() {
+    var cancelSubformButton = document.getElementById(this.cancelButtonID);
+    cancelSubformButton.addEventListener('click', this.listener, false);
+};
 
+Subform.prototype.setListenerForms = function(container) {
     var forms = container.getElementsByTagName('form');
     for (i = 0, max = forms.length; i < max; i++) {
         forms[i].addEventListener('submit', this.listener, false);
     }
+};
+
+Subform.prototype.create = function(json) {
+    var sealed = document.body.appendChild(document.createElement('div'));
+    sealed.id = this.sealedID;
+
+    var container = document.body.appendChild(document.createElement('div'));
+    container.id = this.containerID;
+    container.innerHTML = json.response;
+
+    this.setListenerForms(container);
 
     this.width = container.offsetWidth;
 
@@ -54,6 +78,8 @@ Subform.prototype.create = function(json) {
 
 Subform.prototype.close = function(container) {
     container.style.left = '-' + this.width + 'px';
+    var sealed = document.getElementById(this.sealedID);
+    sealed.classList.add('fadeout');
 };
 
 Subform.prototype.open = function(element) {
@@ -61,13 +87,13 @@ Subform.prototype.open = function(element) {
     TM.xhr.init('GET', element.href, false, function(event){
         if(this.status == 200){
             try {
-                var obj = JSON.parse(this.responseText);
+                var json = JSON.parse(this.responseText);
             } catch (exceptionObject) {
                 console.error(exceptionObject.message);
                 console.log(this.responseText);
                 return;
             }
-            instance.create(obj);
+            instance.create(json);
         } else {
             // TODO: add error handling
             console.log(this.responseText);
@@ -76,15 +102,29 @@ Subform.prototype.open = function(element) {
     TM.xhr.send(null);
 };
 
-Subform.prototype.posted = function(json) {
-    alert(json.message);
+Subform.prototype.posted = function(json, form) {
+
+    if (json.message) {
+        alert(json.message);
+    }
+
     if (json.status === 0) {
         this.close(document.getElementById(this.containerID));
     }
+    else if (json.status === 45) {
+        if (json.arguments && json.arguments.polling_id) {
+            this.pollingTimer = setTimeout(this.polling, this.pollingInterval, json.arguments.polling_address + "&polling_id=" + json.arguments.polling_id);
+        }
+        return;
+    }
 
+    var i, max;
     switch (json.response.type) {
         case 'redirect':
             location.href = json.response.source;
+            break;
+        case 'callback':
+            TM.apply(json.response.source, []);
             break;
         default:
             var template = document.createElement('template');
@@ -92,7 +132,6 @@ Subform.prototype.posted = function(json) {
                 template.innerHTML = json.response.source;
                 document.head.appendChild(template);
                 var nodeList = template.content.childNodes;
-                var i, max;
                 for (i = 0, max = nodeList.length; i < max; i++) {
                     var element = nodeList[i];
                     if (element.nodeType != Node.ELEMENT_NODE || !element.id) {
@@ -104,32 +143,131 @@ Subform.prototype.posted = function(json) {
                     }
                 }
                 document.head.removeChild(template);
+
+                this.setListenerForms(document.getElementById(this.containerID));
+                this.setListenerButtons();
             }
             break;
+    }
+
+    if (json.finally) {
+        this.finally = json.finally;
+    }
+
+    var buttons = form.querySelectorAll("button[type=submit], input[type=submit]");
+    for (i = 0, max = buttons.length; i < max; i++) {
+        buttons[i].disabled = false;
     }
 };
 
 Subform.prototype.submit = function(form) {
+    if (form.normal_request && form.normal_request.value === '1') {
+        form.submit();
+        return;
+    }
+
     var instance = TM.subform;
     TM.xhr.init('POST', form.action, false, function(event){
         if(this.status == 200){
             try {
-                var obj = JSON.parse(this.responseText);
+                var json = JSON.parse(this.responseText);
             } catch (exceptionObject) {
                 console.error(exceptionObject.message);
                 console.log(this.responseText);
                 return;
             }
-            instance.posted(obj);
+            instance.posted(json, form);
         } else {
             // TODO: add error handling
             console.log(this.responseText);
         }
     });
 
+    if (form.polling_id && form.polling_id.value !== '') {
+        this.pollingInterval = parseInt(form.polling_id.dataset.interval);
+    }
+
+    var buttons = form.querySelectorAll("button[type=submit], input[type=submit]");
+    for (i = 0, max = buttons.length; i < max; i++) {
+        buttons[i].disabled = true;
+    }
+
     var formData = new FormData(form);
     formData.append('returntype', 'json');
     TM.xhr.send(formData);
+};
+
+Subform.prototype.progress = function(args) {
+    var progressbar = document.getElementById('progressbar');
+    if (!progressbar) {
+        var template = document.getElementById('polling-parts');
+        if (template.content) {
+            progressbar = template.content.getElementById('progressbar');
+            progressbar = document.body.appendChild(progressbar.cloneNode(true));
+        }
+        var bottom = document.getElementById('cancel-subform');
+        bottom.parentNode.insertBefore(progressbar, bottom);
+    }
+    progressbar.querySelector('.description').innerHTML = args;
+
+    var counter = args.split(' / ');
+    var percent = Math.round(parseInt(counter[0]) / parseInt(counter[1]) * 100);
+    progressbar.querySelector('.bar').style.width = percent + '%';
+};
+
+Subform.prototype.ended = function(args) {
+    console.log(args);
+};
+
+Subform.prototype.showLog = function(polling_id, mode) {
+    var template = document.getElementById('polling-parts');
+    if (template.content) {
+        var panel = template.content.getElementById('log-block');
+        panel = document.body.appendChild(panel.cloneNode(true));
+
+        var iframe = panel.querySelector('iframe');
+        iframe.src = '?mode=' + mode + '&polling_id=' + polling_id;
+
+        var button = panel.querySelector('button');
+        button.addEventListener('click', TM.subform.hideLog, false);
+    }
+};
+
+Subform.prototype.hideLog = function() {
+    var instance = TM.subform;
+    var panel = document.getElementById('log-block');
+    if (panel) {
+        panel.parentNode.removeChild(panel);
+        instance.close(document.getElementById(instance.containerID));
+    }
+};
+
+Subform.prototype.polling = function(url) {
+    var instance = TM.subform;
+    var xhr = new TM_XMLHttpRequest();
+    xhr.init('GET', url, false, function(event){
+        if(this.status == 200){
+            try {
+                var json = JSON.parse(this.responseText);
+            } catch (exceptionObject) {
+                console.error(exceptionObject.message);
+                return;
+            }
+            clearTimeout(instance.pollingTimer);
+            if (json.status == 'running') {
+                instance.pollingTimer = setTimeout(instance.polling, instance.pollingInterval, url);
+            }
+
+            if (json.finally) {
+                instance.finally = json.finally;
+            }
+            TM.apply(json.callback, json.arguments);
+        } else {
+            // TODO: add error handling
+            console.log(this.responseText);
+        }
+    });
+    xhr.send(null);
 };
 
 Subform.prototype.listener = function(event) {
@@ -156,7 +294,9 @@ Subform.prototype.listener = function(event) {
             instance.submit(caller);
             break;
         case 'transitionend':
-            instance.endTransition(caller);
+            if (caller.id === instance.containerID) {
+                instance.endOpenTransition(caller);
+            }
             break;
     }
 };

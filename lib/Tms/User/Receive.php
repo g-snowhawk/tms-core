@@ -50,11 +50,24 @@ class Receive extends Response
      */
     public function saveAlias()
     {
-        if (parent::saveAlias()) {
-            $this->session->param('messages', \P5\Lang::translate('SUCCESS_SAVED'));
-            $url = $this->app->systemURI().'?mode=user.response:profile';
-            \P5\Http::redirect($url);
+        $message = 'SUCCESS_SAVED';
+        $status = 0;
+        $options = [];
+        $response = [[$this, 'redirect'], 'user.response:profile'];
+
+        if (false === parent::saveAlias()) {
+            $message = 'FAILED_SAVE';
+            $status = 1;
+            $response = [[$this, 'edit'], null];
         }
-        $this->edit();
+
+        $this->postReceived(\P5\Lang::translate($message), $status, $response, $options);
+
+        //if (parent::saveAlias()) {
+        //    $this->session->param('messages', \P5\Lang::translate('SUCCESS_SAVED'));
+        //    $url = $this->app->systemURI().'?mode=user.response:profile';
+        //    \P5\Http::redirect($url);
+        //}
+        //$this->edit();
     }
 }

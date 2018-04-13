@@ -43,6 +43,14 @@ class Validator
 
         foreach ($checker as $check) {
             $key = array_shift($check);
+
+            $n = 1;
+            $original_key = $key;
+            while (isset($this->_checker[$key])) {
+                $key = "$original_key.$n";
+                ++$n;
+            }
+
             $this->_checker[$key] = array(
                 'source' => array_shift($check),
                 'type'   => array_shift($check),
@@ -56,10 +64,11 @@ class Validator
      * Validation.
      *
      * @param array $values
+     * @param array $files
      *
      * @return bool
      */
-    public function valid($values)
+    public function valid($values, $files)
     {
         $duplicate = array();
         foreach ($this->_checker as $key => $unit) {
@@ -72,7 +81,11 @@ class Validator
                 $s = array_shift($t);
             }
 
-            if ($unit['type'] === 'necessary' && !isset($values[$s])) {
+            if (!isset($values[$s]) && isset($files[$s])) {
+                $values[$s] = $files[$s];
+            }
+
+            if ($unit['type'] === 'empty' && !isset($values[$s])) {
                 $values[$s] = '';
             }
 
@@ -88,8 +101,10 @@ class Validator
                 } else {
                     $value = $values[$s];
                 }
-                $this->_errors[$key] = ($this->check($key, $value)) ? 0 : $unit['errnum'];
-                if ($this->_errors[$key] > 0) {
+
+                $error_key = preg_replace('/\.[0-9]+$/', '', $key);
+                $this->_errors[$error_key] = ($this->check($key, $value)) ? 0 : $this->_checker[$key]['errnum'];
+                if ($this->_errors[$error_key] > 0) {
                     $duplicate[$s] = 1;
                 }
             }
@@ -156,6 +171,17 @@ class Validator
                 break;
             case 'retype':
                 $result = ($value[0] === $value[1]);
+                break;
+            case 'upload':
+                if ($value['error'] > 0) {
+                    $result = false;
+                    $this->_checker[$key]['errnum'] = $value['error'];
+                } else {
+                    if (is_array($this->_checker[$key]['args'])) {
+                        $ext = pathinfo($value['name'], PATHINFO_EXTENSION);
+                        $result = in_array(strtolower(".$ext"), array_map('strtolower', $this->_checker[$key]['args']));
+                    }
+                }
                 break;
             case 'writable':
                 if (is_dir($value)) {

@@ -48,12 +48,17 @@
         {% endfor %}
       </tbody>
     </table>
-    <div class="footer-ctrl">
-      {% if apps.hasPermission('user.create') %}
-        <a href="?mode=user.response:edit">＋新規ユーザー</a>
-      {% else %}
-        <span class="dummy">&nbsp;</span>
-      {% endif %}
+    <div class="footer-controls">
+      <nav class="links">
+        {% if apps.hasPermission('user.create') %}
+          <a href="?mode=user.response:edit">＋新規ユーザー</a>
+        {% else %}
+          <span class="dummy">&nbsp;</span>
+        {% endif %}
+      </nav>
+      <nav class="pagination">
+        {% include 'pagination.tpl' %}
+      </nav>
     </div>
   </div>
 {% endblock %}

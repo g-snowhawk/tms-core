@@ -492,6 +492,21 @@ TM_Common.prototype.parseQuery = function(str) {
     }
     return query;
 };
+TM_Common.prototype.apply = function(command, args) {
+    var names = command.split('.');
+    var i, max;
+    var obj = window;
+    for (i = 0, max = names.length; i < max; i++) {
+        var key = names[i];
+        if (typeof(obj[key]) === 'undefined') {
+            break;
+        }
+        else if (typeof(obj[key]) === 'function') {
+            return obj[key].apply(obj, args);
+        }
+        obj = obj[key];
+    }
+};
 TM_Common.prototype.hash = function(str) {
     return str.substr(str.indexOf('#'));
 };
