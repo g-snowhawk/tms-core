@@ -137,16 +137,26 @@ class User extends \Tms\Common
         }
 
         if (empty($post['id'])) {
-            $parent = '(SELECT * FROM table::user WHERE id = ?)';
-            $unit = $this->db->nsmGetPosition($parent, 'table::user', [$this->uid]);
-            $parent_lft = (float) $unit['lft'];
-            $parent_rgt = (float) $unit['rgt'];
+            $parent_rgt = $this->db->get('rgt', 'user', 'id = ?', [$this->uid]);
 
-            $save['lft'] = ($parent_lft * 2 + $parent_rgt) / 3;
-            $save['rgt'] = ($parent_lft + $parent_rgt * 2) / 3;
+            $save['lft'] = $parent_rgt;
+            $save['rgt'] = $parent_rgt + 1;
+
+            $update_parent = $this->db->prepare(
+                "UPDATE table::user
+                    SET lft = CASE WHEN lft > :parent_rgt
+                                   THEN lft + 2
+                                   ELSE lft END,
+                        rgt = CASE WHEN rgt >= :parent_rgt
+                                   THEN rgt + 2
+                                   ELSE rgt END
+                  WHERE rgt >= :parent_rgt"
+            );
 
             $raw = ['create_date' => 'CURRENT_TIMESTAMP'];
-            if (false !== $result = $this->db->insert($table, $save, $raw)) {
+            if (   false !== $update_parent->execute(['parent_rgt' => $parent_rgt])
+                && false !== $result = $this->db->insert($table, $save, $raw)
+            ) {
                 $post['id'] = $this->db->lastInsertId(null, 'id');
             }
         } else {
@@ -444,6 +454,19 @@ class User extends \Tms\Common
     }
 
     /**
+     * get user alias data.
+     *
+     * @param int $own
+     * @param steing $columns
+     *
+     * @return array
+     */
+    protected function getAliases($own, $columns = '*')
+    {
+        return $this->db->select($columns, 'user', 'WHERE alias = ?', [$own]);
+    }
+
+    /**
      * Save user alias data.
      *
      * @return bool
@@ -540,5 +563,54 @@ class User extends \Tms\Common
             }
         }
         return true;
+    }
+
+    /**
+     * Users List
+     *
+     * @param mixed $restriction    string|array
+     *
+     * @return array|false
+     */
+    protected function getUsers($restriction = null, $sort = null, $limit = null, $offset = null)
+    {
+        $filter = 'restriction IS NULL';
+        $options = [$this->uid];
+        if (is_array($restriction)) {
+            $filter = 'restriction IN ('.implode(',',array_fill(0,count($restriction),'?')).')';
+            $options = array_merge($options, $restriction);
+        }
+        elseif (!empty($restriction)) {
+            $filter = 'restriction = ?';
+            $options[] = $restriction;
+        }
+
+        $orderby = '';
+        if (!empty($sort)) {
+            $orderby .= " ORDER BY $sort";
+        }
+
+        $extensions = '';
+        if (!empty($limit)) {
+            $offset = (!empty($offset)) ? (int)$offset.',' : '';
+            $extensions .= ' LIMIT '. $offset . (int)$limit;
+        }
+
+        return $this->db->nsmGetDecendants(
+            'children.id, children.fullname, children.company, children.email',
+            '(SELECT * FROM table::user WHERE id = ?)',
+            "(SELECT * FROM table::user WHERE $filter$orderby)",
+            $options, $extensions
+        );
+    }
+
+    protected function eraseUnusedPermission()
+    {
+        return $this->db->exec(
+            "DELETE p FROM tm_permission p
+               LEFT JOIN tm_user u 
+                 ON p.userkey = u.id
+              WHERE u.id IS NULL"
+        );
     }
 }

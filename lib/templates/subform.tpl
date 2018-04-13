@@ -1,7 +1,23 @@
-<form id="TMS-subform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}"{% if form.confirm %} data-confirm="{{ form.confirm|url_encode }}"{% endif %}>
+<form id="{{ subformPrefix }}subform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}"{% if form.confirm %} data-confirm="{{ form.confirm|url_encode }}"{% endif %}>
   <input type="hidden" name="stub" value="{{ stub }}">
   {% block main %}{% endblock %}
 </form>
 <div id="cancel-subform">
-  <a href="#container" id="cancel-subform-button">キャンセル</a>
+  <a href="#container" id="cancel-subform-button">閉じる</a>
 </div>
+<template id="polling-parts">
+  <div id="log-block">
+    <div class="dialog">
+      <iframe src=""></iframe>
+      <div class="footer">
+        <button>OK</button>
+      </div>
+    </div>
+  </div>
+  <div id="progressbar">
+    <div class="bar-outline">
+      <div class="bar"></div>
+    </div>
+    <div class="description"></div>
+  </div>
+</template>

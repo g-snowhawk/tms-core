@@ -80,6 +80,30 @@ class App extends Base
             trigger_error('Could not open database connection. ', E_USER_ERROR);
         }
 
+        // CLI mode
+        if (php_sapi_name() === 'cli') {
+            $this->isCLI = true;
+            global $argv;
+            $options = getopt('m:p::g::',['mode:','post::','get::']);
+            $mode = (isset($options['m'])) ? $options['m'] : $options['mode'];
+            $args_cli = [];
+            foreach ($argv as $n => $arg) {
+                if ($n === 0 || preg_match('/^-+/', $arg) || in_array($arg, $options)) {
+                    continue;
+                }
+                $args_cli[] = $arg;
+            }
+            if (empty($mode)) {
+                exit;
+            }
+        }
+
+        if ($this->isCLI) {
+            list($instance, $function, $args) = $this->instance($mode);
+            call_user_func_array([$instance, $function], (array)$args_cli);
+            exit;
+        }
+
         $loggedin = ($this->session->param('authorized'))
             ? $this->session->param('authorized') : 'failed';
 
@@ -131,8 +155,6 @@ class App extends Base
             }
         }
 
-        $mode = $this->getMode();
-
         if ($this->session->param('messages')) {
             $this->view->bind('messages', $this->session->param('messages'));
             $this->session->clear('messages');
@@ -146,6 +168,8 @@ class App extends Base
             )
         );
         $this->view->bind('stub', $this->csrf());
+
+        $mode = $this->getMode();
 
         list($instance, $function, $args) = $this->instance($mode);
 

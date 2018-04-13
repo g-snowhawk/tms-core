@@ -25,6 +25,13 @@ abstract class Common
      */
     public $app;
 
+    /*
+     * Pagination class
+     *
+     * @ver \P5\Pagination
+     */
+    public $pager;
+
     /**
      * Template file name.
      *
@@ -51,6 +58,8 @@ abstract class Common
         if (method_exists($this, 'packageName')) {
             $this->session->param('application_name', $this->packageName());
         }
+
+        $this->pager = new \P5\Pagination();
     }
 
     /**
@@ -127,7 +136,7 @@ abstract class Common
 
         $result = true;
         $v = new \Tms\Validator($valid);
-        $err = $v->valid($this->request->param());
+        $err = $v->valid($this->request->param(), $this->request->files());
         foreach ($err as $key => $value) {
             if ($value >= 1) {
                 $result = false;
@@ -144,10 +153,11 @@ abstract class Common
      * @param string $table_name
      * @param array  $post
      * @param array  $skip
+     * @param string $cast_string
      *
      * @return array
      */
-    protected function createSaveData($table_name, array $post, array $skip)
+    protected function createSaveData($table_name, array $post, array $skip, $cast_string = null)
     {
         $data = [];
         $fields = $this->db->getFields($this->db->TABLE($table_name));
@@ -159,6 +169,21 @@ abstract class Common
                 continue;
             }
             $data[$field] = (empty($post[$field])) ? null : $post[$field];
+
+            if (is_array($data[$field])) {
+                switch ($cast_string) {
+                    case 'json':
+                        $data[$field] = json_encode($data[$field]);
+                        break;
+                    case 'serialize':
+                        $data[$field] = serialize($data[$field]);
+                        break;
+                    case 'implode':
+                    case 'join':
+                        $data[$field] = implode(',', $data[$field]);
+                        break;
+                }
+            }
         }
 
         return $data;
@@ -258,6 +283,13 @@ abstract class Common
             }
         }
 
+        if (is_array($status)) {
+            $number = $status['status'];
+            unset($status['status']);
+            $arguments = $status;
+            $status = $number;
+        }
+
         // Response to javascript XMLHttpRequest
         if ($this->isAjax) {
             $content_type = 'text/plain';
@@ -266,10 +298,19 @@ abstract class Common
                 'message' => $message,
             ];
 
+            if (isset($arguments)) {
+                $result['arguments'] = $arguments;
+            }
+
             $ret = call_user_func_array($response[0], (array)$response[1]);
             $result['response'] = (is_array($ret))
                 ? $ret
                 : ['type' => 'replace', 'source' => $ret];
+
+            $callback = $this->request->param('callback');
+            if (!empty($callback)) {
+                $result['response'] = ['type' => 'callback', 'source' => $callback];
+            }
 
             switch ($this->request->param('returntype')) {
                 case 'json':
@@ -278,9 +319,11 @@ abstract class Common
                     break;
                 case 'xml':
                     $content_type = 'text/xml';
+                    // TODO: convert array to XML
+                    //$source = {XML source code};
                     break;
             }
-            header("Content-type: $content_type; charset=utf-8");
+            \P5\Http::responseHeader("Content-type","$content_type; charset=utf-8");
             echo $source;
             exit;
         }
@@ -294,8 +337,7 @@ abstract class Common
 
     protected function redirect($mode, $type = 'redirect')
     {
-        $mode = filter_var($mode, FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
-        $url = $this->app->systemURI().'?mode='.urlencode($mode);
+        $url = $this->app->systemURI().'?mode='.filter_var($mode, FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
         if (!$this->isAjax) {
             \P5\Http::redirect($url);
         }
@@ -315,5 +357,95 @@ abstract class Common
         }
 
         return $response;
+    }
+
+    protected function classNameToMode($instance = null)
+    {
+        if (is_null($instance)) {
+            $instance = $this;
+        }
+
+        $mode = strtolower(strtr(get_class($instance), '\\', '.'));
+
+        if ($instance instanceof Plugin) {
+            $mode = preg_replace('/\./', '~', $mode, 1);
+        }
+
+        return $mode;
+    }
+
+    protected function startPolling()
+    {
+        if (touch($this->pollingPath())) {
+            return microtime(true);
+        }
+        return false;
+    }
+
+    protected function endPolling()
+    {
+        $polling_file = $this->pollingPath();
+        return (file_exists($polling_file)) ? unlink($polling_file) : true;
+    }
+
+    protected function updatePolling($data)
+    {
+        return file_put_contents($this->pollingPath(), $data);
+    }
+
+    protected function echoPolling()
+    {
+        $polling_file = $this->pollingPath();
+
+        $json = [
+            'status' => 'ended',
+            'callback' => 'TM.subform.ended',
+            'arguments' => []
+        ];
+        if (file_exists($polling_file) && is_file($polling_file)) {
+            $json['callback'] = 'TM.subform.progress';
+            $json['arguments'] = [file_get_contents($polling_file)];
+        } elseif (file_exists("$polling_file.log")) {
+            $json['callback'] = 'TM.subform.showLog';
+            $json['arguments'] = [
+                $this->request->param('polling_id'),
+                $this->classNameToMode().':showPollingLog'
+            ];
+        }
+
+        // TODO: $json['finally'] support dynamically setting
+        $finally = "$polling_file.finally";
+        if (file_exists($finally)) {
+            $json['finally'] = json_decode(file_get_contents($finally),true);
+            unlink($finally);
+        }
+
+        \P5\Http::nocache();
+        \P5\Http::responseHeader('Content-type','application/json');
+        echo json_encode($json);
+    }
+
+    protected function pollingPath()
+    {
+        return implode(
+            DIRECTORY_SEPARATOR,
+            [$this->app->cnf('global:tmp_dir'),$this->request->param('polling_id')]
+        );
+    }
+
+    public function showPollingLog()
+    {
+        \P5\Http::nocache();
+        \P5\Http::responseHeader('Content-type','text/plain; charset=utf-8');
+
+        $logfile = $this->pollingPath().'.log';
+        if (file_exists($logfile)) {
+            readfile($logfile);
+            unlink($logfile);
+        } else {
+            echo 'Log file '.$logfile.' is not found.';
+        }
+
+        exit;
     }
 }
