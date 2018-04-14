@@ -233,7 +233,7 @@ abstract class Base
         $ukeep = $this->request->POST('ukeep');
 
         $err = array('vl_empty' => 0, 'vl_mismatch' => 0, 'vl_nocookie' => 0);
-        $auth = new \P5\Security($authTable, $this->db, $this->cnf('global:password_encrypt_algorithm'));
+        $auth = new \Tms\Security($authTable, $this->db, $this->cnf('global:password_encrypt_algorithm'));
 
         if (false === $auth->authentication($uname, $upass)) {
             if (!is_null($this->request->POST('authEnabler'))) {
