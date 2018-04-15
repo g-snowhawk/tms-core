@@ -79,14 +79,21 @@ class Response extends \Tms\System
 
         $this->view->bind('packages', $packages);
 
-        //$config_file = $this->app->cnf('global:data_dir') . '/config.php';
-        //if (file_exists($config_file)) {
-        //    $this->view->bind('mtime', filemtime($config_file));
-        //    $template = 'system/download.tpl';
-        //}
-
         $this->setHtmlId('system-default');
         $this->view->render($template);
+    }
+
+    public function failed()
+    {
+        $this->view->bind(
+            'header',
+            [
+                'title' => 'Login Panel',
+                'id' => 'signin',
+                'class' => 'signin'
+            ]
+        );
+        $this->view->render('signin.tpl');
     }
 
     public function change()
@@ -158,12 +165,6 @@ class Response extends \Tms\System
         $template = 'system/plugins.tpl';
 
         $this->view->bind('packages', $packages);
-
-        //$config_file = $this->app->cnf('global:data_dir') . '/config.php';
-        //if (file_exists($config_file)) {
-        //    $this->view->bind('mtime', filemtime($config_file));
-        //    $template = 'system/download.tpl';
-        //}
 
         $this->setHtmlId('system-default');
         $this->view->render($template);

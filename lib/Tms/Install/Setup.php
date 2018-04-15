@@ -264,19 +264,24 @@ class Setup
                 $base_url = $this->request->POST('base_url');
                 $unit = parse_url($base_url);
                 $docroot = preg_replace("/\/$/", '', $this->request->POST('docroot'));
-                $this->cnf = ['global' => [
-                    'domain_name' => $this->request->POST('domain_name'),
-                    'base_url' => $base_url,
-                    'base_dir' => dirname($docroot),
-                    'docroot' => $docroot,
-                    'data_dir' => $this->save_dir,
-                    'tmp_dir' => $this->save_dir.'/tmp',
-                    'log_dir' => $this->save_dir.'/logs',
-                    'cache_dir' => $this->save_dir.'/cache',
-                    'system_path' => $unit['path'],
-                    'assets_path' => $this->request->POST('assets_path'),
-                    'system_lang' => 'ja',
-                ]];
+                $this->cnf = [
+                    'global' => [
+                        'domain_name' => $this->request->POST('domain_name'),
+                        'base_url' => $base_url,
+                        'base_dir' => dirname($docroot),
+                        'docroot' => $docroot,
+                        'data_dir' => $this->save_dir,
+                        'tmp_dir' => $this->save_dir.'/tmp',
+                        'log_dir' => $this->save_dir.'/logs',
+                        'cache_dir' => $this->save_dir.'/cache',
+                        'system_path' => $unit['path'],
+                        'assets_path' => $this->request->POST('assets_path'),
+                        'system_lang' => 'ja',
+                    ],
+                    'session' => [
+                        'cookie_path' => $unit['path']
+                    ]
+                ];
                 $this->request->POST('tmp_file', $this->save_dir.'/tmp.ini');
 
                 return $this->saveConfigFile($this->request->POST('tmp_file'));

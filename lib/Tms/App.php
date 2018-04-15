@@ -114,7 +114,7 @@ class App extends Base
             $this->logger->log('Signout');
             $this->setcookie('limit', '', time() - 3600);
             $this->session->destroy();
-            \P5\Http::redirect($this->systemURI());
+            \P5\Http::redirect($this->reload());
         }
 
         // Authentication
@@ -134,14 +134,16 @@ class App extends Base
                     break;
             }
             if ($installed === 0) {
-                //$ins = new Install\Setup();
                 $installer = new Install\Setup();
                 $installer->install();
             } else {
                 // Failure
                 if (false === $this->auth('user')) {
                     $this->setcookie('enableCookie', 'yes', 0, null, null, false, false);
-                    $this->view->render('signin.tpl');
+                    $mode = (!is_null($this->cnf('application:authentication_failed')))
+                        ? $this->cnf('application:authentication_failed')
+                        : 'system.response:failed';
+                    $this->request->param('mode', $mode);
                 }
             }
         } else {
@@ -169,23 +171,6 @@ class App extends Base
         );
         $this->view->bind('stub', $this->csrf());
 
-        $mode = $this->getMode();
-
-        list($instance, $function, $args) = $this->instance($mode);
-
-        try {
-            $instance->init();
-            if (is_null($args)) {
-                $instance->$function();
-            } else {
-                call_user_func_array([$instance, $function], $args);
-            }
-        } catch (PermitException $e) {
-            $this->view->bind('alert', $e->getMessage());
-            $this->view->render('permitfailure.tpl');
-        } catch (\Exception $e) {
-            $this->view->bind('alert', $e->getMessage());
-            $this->view->render('systemerror.tpl');
-        }
+        $this->response($this->getMode());
     }
 }
