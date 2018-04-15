@@ -279,6 +279,9 @@ class View implements View_Interface
      */
     public function clearCache($template_path) 
     {
+        if (!file_exists($template_path)) {
+            return true;
+        }
         $cache = $this->engine->getCache(false);
         $this->setPath(dirname($template_path));
         $name = basename($template_path);

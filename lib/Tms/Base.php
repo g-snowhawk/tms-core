@@ -116,13 +116,22 @@ abstract class Base
         $this->env = new \P5\Environment();
         $this->request = new \P5\Html\Form();
 
-        $save = $this->cnf('global:tmp_dir');
-        $uri = parse_url($this->env->server('request_uri'));
-        $path = (String)$this->cnf('session:cookie_path');
-        $domain = null;
+        $save_path = $this->cnf('global:tmp_dir');
+        $path = (string)$this->cnf('session:cookie_path');
+        if (empty($path)) {
+            $path = '/';
+        }
+        elseif (false !== strpos($path, '*')) {
+            $pattern = preg_quote($path, '/');
+            $pattern = '/^('.str_replace(['\\*\\*', '\\*'], ['.+', '[^\/]+'], $pattern).')/';
+            if ($s = preg_match($pattern, \P5\Environment::server('request_uri'), $match)) {
+                $path = $match[1];
+            }
+        }
+        $domain = (string)$this->cnf('session:domain');
         $secure = (\P5\Environment::server('https') === 'on');
         $httponly = true;
-        $this->session = new \P5\Session('nocache', $save, 0, $path, $domain, $secure, $httponly);
+        $this->session = new \P5\Session('nocache', $save_path, 0, $path, $domain, $secure, $httponly);
         $name = $this->cnf('session:name');
         if (empty($name)) {
             $name = self::SESSION_NAME;
@@ -265,8 +274,8 @@ abstract class Base
                     $this->session->param('uname', $uname);
                     $this->session->param('securet', $secret);
                     return true;
-                } elseif ($this->session->param('uname') === 'guest') {
-                    session_destroy();
+                } elseif ($this->session->param('uname') === 'guest' && empty($uname)) {
+                    $this->session->destroy();
                 }
             }
             $this->view->bind(
@@ -317,7 +326,7 @@ abstract class Base
         $this->session->param('securet', $securet);
 
         $this->logger->log('Signin');
-        \P5\Http::redirect($this->systemURI());
+        $this->reload();
     }
 
     /**
@@ -454,6 +463,33 @@ abstract class Base
     }
 
     /**
+     * Response from application
+     *
+     * @param string $mode
+     *
+     * @return void
+     */
+    public function response($mode)
+    {
+        list($instance, $function, $args) = $this->instance($mode);
+
+        try {
+            $instance->init();
+            if (is_null($args)) {
+                $instance->$function();
+            } else {
+                call_user_func_array([$instance, $function], $args);
+            }
+        } catch (PermitException $e) {
+            $this->view->bind('alert', $e->getMessage());
+            $this->view->render('permitfailure.tpl');
+        } catch (\Exception $e) {
+            $this->view->bind('alert', $e->getMessage());
+            $this->view->render('systemerror.tpl');
+        }
+    }
+
+    /**
      * Current application name
      *
      * @param string $application_name
@@ -579,6 +615,14 @@ abstract class Base
         }
         $parsed_url = parse_url($url);
         return $parsed_url['path'];
+    }
+
+    public function reload($qsa = false)
+    {
+        if ($qsa === false) {
+            $url = preg_replace('/\?.*$/', '', \P5\Environment::server('request_uri'));
+        }
+        \P5\Http::redirect($url);
     }
 
     public static function isAjax()
