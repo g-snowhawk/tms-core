@@ -89,6 +89,10 @@ class View implements View_Interface
         $this->resetEngine();
     }
 
+    public function __clone()
+    {
+    }
+
     public function resetEngine()
     {
         $this->loader = new \Twig_Loader_Filesystem($this->template_dir);
@@ -156,7 +160,12 @@ class View implements View_Interface
         }
 
         $this->bind('session', $_SESSION);
-        $html = $this->engine->render($template);
+
+        try {
+            $html = $this->engine->render($template);
+        } catch (\Exception $e) {
+            throw new ViewException($e->getMessage(), $e->getCode(), $e);
+        }
 
         // format HTML
         $formatter = new \P5\Html\Format('  ', false);

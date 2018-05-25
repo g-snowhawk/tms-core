@@ -13,13 +13,19 @@ html, body {
 body {
   font-size: 16px;
   font-family: "ヒラギノ角ゴシック","Hiragino Sans",
-               "游ゴシック体","Yu Gothic","YuGothic",
                "ヒラギノ角ゴ ProN W3","Hiragino Kaku Gothic ProN",
                "メイリオ",Meiryo,
+               "游ゴシック体","Yu Gothic","YuGothic",
                sans-serif;
 }
 input, textarea, select {
   outline: none;
+}
+main {
+  display: block;
+}
+template {
+  display: none;
 }
 
 ::-webkit-input-placeholder { color: #abc; }
@@ -151,6 +157,40 @@ a.small-button:hover {
 }
 /* end of Pagenation */
 
+/*==============================================*
+ * Tooltip
+ *----------------------------------------------*/
+*[data-tips]:before {
+  border: 6px solid transparent;
+  border-top-color: rgba(0,0,0,.8);
+  content: "";
+  left: 1rem;
+  position: absolute;
+  top: 0;
+}
+*[data-tips]:after {
+  background: rgba(0,0,0,.8);
+  border-radius: 4px;
+  bottom: 100%;
+  color: #fff;
+  content: attr(data-tips);
+  display: block;
+  font-size: .7rem;
+  left: .3rem;
+  padding: .5rem;
+  position: absolute;
+}
+*[data-tips]:after ,
+*[data-tips]:before {
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+*[data-tips]:hover:after ,
+*[data-tips]:hover:before {
+  opacity: 1;
+}
+/* end of Tooltip */
+
 /**
  * Explorer styles
  */
@@ -208,8 +248,10 @@ a.small-button:hover {
 .explorer .tree li a {
   background: transparent none no-repeat 100% 50%;
   background-size: 10px 10px;
+  border-bottom: 1px dotted transparent;
   color: #999;
   display: block;
+  position: relative;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -220,6 +262,19 @@ a.small-button:hover {
 .explorer .tree li a.current {
   background-image: url(icon_tri_red.svg);
   color: #000;
+}
+.explorer .tree li a.lockon {
+  border-bottom: 1px dotted #f00;
+}
+.explorer .tree li a.lockon:after {
+  border: 6px solid transparent;
+  border-left-color: #f00;
+  content: '';
+  display: block;
+  margin: -6px -4px 0 0;
+  position: absolute;
+  right: 100%;
+  top: 100%;
 }
 .explorer .tree ul {
   margin-left: 16px;
@@ -255,11 +310,6 @@ a.small-button:hover {
   right: 0;
   top: 0;
 }
-.explorer-list table {
-  border-collapse: collapse;
-  empty-cells: show;
-  min-width: 100%;
-}
 .explorer-list .headline {
   background: #69c;
   box-sizing: border-box;
@@ -278,18 +328,34 @@ a.small-button:hover {
   width: 100%;
 }
 .explorer-list .footer-controls > * {
+  box-sizing: border-box;
   flex-grow: 1;
+  padding: 0 .5rem;
   width: 50%;
 }
 .explorer-list .footer-controls a,
 .explorer-list .footer-controls span {
+  background: rgba(255,255,255,0);
+  border-radius: 6px;
   color: #fff;
   display: inline-block;
   font-size: .8rem;
-  line-height: 32px;
-  padding: 0 8px;
+  margin: 4px 0;
+  padding: 6px 8px;
   text-decoration: none;
+  transition: all .5s ease;
   vertical-align: top;
+}
+.explorer-list .footer-controls a:hover {
+  background: rgba(255,255,255,.2);
+}
+.explorer-list .footer-controls a i {
+  font-family: Arial, sans-serif;
+  font-style: normal;
+  margin-right: .25em;
+}
+.explorer-list .footer-controls a:hover i {
+  color: #6ff;
 }
 .explorer-list .footer-controls .pagination .pager a:focus,
 .explorer-list .footer-controls .pagination .pager a:hover {
@@ -310,6 +376,11 @@ a.small-button:hover {
   content: '>';
   margin-left: 4px;
 }
+.explorer-list table {
+  border-collapse: collapse;
+  empty-cells: show;
+  min-width: 100%;
+}
 .explorer-list thead {
   background: #9cf;
 }
@@ -318,16 +389,19 @@ a.small-button:hover {
   font-size: .9rem;
   padding: 4px 8px;
   white-space: nowrap;
+  vertical-align: middle;
 }
+.explorer-list table td.link,
 .explorer-list table td.button {
   padding: 0;
 }
 .explorer-list table td.button label,
 .explorer-list table td.button a {
   color: #69c;
+  cursor: pointer;
   display: block;
   line-height: inherit;
-  padding: 4px 8px;
+  padding: .5rem;
   text-align: center;
   text-decoration: none;
   transition: background-color .5s ease;
@@ -345,31 +419,73 @@ a.small-button:hover {
 .explorer-list table td.reddy a:hover {
   background: #c66;
 }
+.explorer-list table td.empty,
 .explorer-list table td.spacer {
   width: 100%;
+}
+.explorer-list table td.date {
+  color: #666;
+  font-size: .7rem;
+  padding-right: 1rem;
 }
 .explorer-list table td.wrap {
   white-space: wrap;
 }
 .explorer-list table thead td {
+  box-sizing: border-box;
   color: #369;
   font-size: .8rem;
   font-weight: bold;
-  padding: 4px 8px;
+  padding: .25rem .5rem;
   white-space: nowrap;
 }
 .explorer-list table tbody tr {
-  background: #fff;
+  background-color: #fff;
   transition: background-color .8s ease;
 }
+.explorer-list table tbody td {
+  padding: .5rem;
+}
 .explorer-list table tbody tr:nth-child(even) {
-  background: #efefef;
+  background-color: #efefef;
 }
 .explorer-list table tbody tr:hover {
-  background: #ffd;
+  background-color: #ffd;
 }
 .explorer-list table input[name="delete"] {
   display: none;
+}
+.explorer-list table tbody td.link > a,
+.explorer-list table tbody td.link > * {
+  box-sizing: border-box;
+  color: initial;
+  display: block;
+  padding: .5rem;
+  position: relative;
+  text-decoration: none;
+}
+.explorer-list table tbody td.with-icon > a,
+.explorer-list table tbody td.with-icon > * {
+  background: transparent none no-repeat 8px 50%;
+  background-size: 20px 20px;
+  padding: .5rem .5rem .5rem 32px;
+}
+.explorer-list table tbody tr.folder td:first-child a {
+  background-image: url(icon_folder.svg);
+}
+.explorer-list table tbody tr.draft td:first-child a {
+  background-image: url(icon_draft.svg);
+}
+.explorer-list table tbody tr.draft:first-child *[data-tips]:before {
+  bottom: 0;
+  border-top-color: rgba(0,0,0,0);
+  border-bottom-color: rgba(0,0,0,.8);
+  top: auto;
+}
+.explorer-list table tbody tr.draft:first-child *[data-tips]:after {
+  bottom: auto;
+  top: 100%;
+  z-index: 101;
 }
 /* Fix table header on vertical scroll styles */
 .ftv-h-scroller {
@@ -547,19 +663,32 @@ a.small-button:hover {
   margin-right: 4px;
   vertical-align: text-top;
 }
+.fieldset fieldset {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+.fieldset fieldset label,
 .fieldset div.input label {
   background: transparent;
   border: 0 none;
+  margin-right: .8em;
   padding: initial;
   vertical-align: baseline;
 }
+.fieldset fieldset label:after,
 .fieldset div.input label:after {
   content: '';
 }
+.fieldset fieldset,
 .fieldset div.input {
   border: 1px solid #ccc;
+  font-size: .9rem;
+  margin: 0;
   padding: 4px 0;
 }
+.fieldset fieldset input[type="checkbox"],
+.fieldset fieldset input[type="radio"],
 .fieldset div.input input[type="checkbox"],
 .fieldset div.input input[type="radio"] {
   margin: 0 4px 0 0;
@@ -569,6 +698,7 @@ a.small-button:hover {
   content: ' :';
 }
 .fieldset div.input,
+.fieldset fieldset,
 .fieldset input.sametext,
 .fieldset input[type="password"],
 .fieldset input[type="text"] {
@@ -577,6 +707,13 @@ a.small-button:hover {
   border-bottom-right-radius: 4px;
   box-sizing: border-box;
   width: 100%;
+}
+.fieldset input.normal{
+  border: 1px solid #ccc;
+  border-radius: 0;
+  font-size: .7rem;
+  padding: 4px;
+  width: auto;
 }
 .fieldset input.short {
   min-width: 3rem;
@@ -590,7 +727,7 @@ a.small-button:hover {
   padding: 0 .5rem;
 }
 .fieldset select {
-  background: transparent url(pulldown.svg) no-repeat 100% 50%;
+  background: #fff url(pulldown.svg) no-repeat 100% 50%;
   background-size: 28px 20px;
   border-left: 0 none transparent;
   border-radius: 0;
@@ -601,12 +738,15 @@ a.small-button:hover {
   width: 100%;
 }
 .fieldset textarea {
-  border-left: 0 none transparent;
+  border-left: 1px dashed transparent;
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
   box-sizing: border-box;
   resize: none;
   width: 100%;
+}
+.fieldset textarea:focus {
+  border-left-color: #bcf;
 }
 
 .fieldset input[maxlength="2"] {
@@ -628,7 +768,78 @@ a.small-button:hover {
   content: '';
 }
 
+
+.fieldset .select-box {
+  background: transparent url(pulldown.svg) no-repeat 100% 50%;
+  background-size: 28px 20px;
+  position: relative;
+}
+.fieldset .select-box .select-text {
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  font-size: .9rem;
+  padding: 0 4px;
+  user-select: none;
+}
+.fieldset .select-box .select-menu {
+  background: #fff;
+  box-sizing: border-box;
+  border: 1px solid #000;
+  padding: .5rem 0;
+  position: absolute;
+  top: 100%;
+  display: none;
+  width: 100%;
+}
+.fieldset .select-box .select-menu.select-open {
+  display: block;
+}
+.fieldset .select-box .select-menu ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.fieldset .select-box .select-menu li ul {
+  margin-left: 1.2em;
+}
+.fieldset .select-box .select-menu input {
+  display: none;
+}
+.fieldset .select-box .select-menu input + span {
+  visibility: hidden;
+}
+.fieldset .select-box .select-menu label {
+  border-radius: 0;
+  display: block;
+  padding: 6px 8px;
+  text-align: initial;
+}
+.fieldset .select-box .select-menu label:hover input + span {
+  color: #ccc;
+  visibility: visible;
+}
+.fieldset .select-box .select-menu label input:checked + span {
+  color: #f00;
+  visibility: visible;
+}
+
+
+input.datetime {
+  border: 1px solid #ccc !important;
+  border-radius: 0 !important;
+  font-family: Verdana, sans-serif;
+  font-size: .7rem !important;
+  font-style: italic;
+  padding: 4px;
+  text-align: center;
+  width: auto !important;
+}
+
+
 .active label,
+.active fieldset,
 .active input.sametext,
 .active input[type="text"],
 .active input[type="password"],
@@ -637,11 +848,13 @@ a.small-button:hover {
   border-color: #999;
 }
 /* form input error style */
+.invalid div.input,
 .invalid input.sametext,
 .invalid input[type="text"],
 .invalid input[type="password"],
 .invalid select,
 .invalid textarea,
+.invalid fieldset,
 .invalid label {
   border-color: #f99;
 }
@@ -690,6 +903,10 @@ a.small-button:hover {
 .wrapper {
   margin: 0 auto;
   max-width: 768px;
+  padding: 0 1rem;
+}
+.wrapper.wide {
+  max-width: initial;
 }
 .wrapper h1 {
   font-size: 1.8rem;
@@ -742,13 +959,6 @@ section.relational-list h2 {
   margin: 32px 0 0;
   padding: 0;
 }
-section.relational-list a {
-  color: #333;
-  text-decoration: none;
-}
-section.relational-list a:hover {
-  color: #039;
-}
 section.relational-list nav {
   margin: 0;
   padding: 0;
@@ -768,10 +978,12 @@ section.relational-list li > div.line {
   display: flex;
 }
 section.relational-list li > div.line a {
+  color: inherit;
   display: flex;
   flex-grow: 1;
   line-height: 1;
   padding: 12px 8px;
+  text-decoration: none;
 }
 section.relational-list li > div.line a > span {
   flex-grow: 1;
@@ -799,6 +1011,9 @@ section.relational-list li > div.line label input:checked + span {
   color: #f00;
   visibility: visible;
 }
+section.relational-list li > div.line label input:checked + span.green {
+  color: #093;
+}
 section.relational-list li > div.line label.checkmark {
   color: #666;
 }
@@ -808,6 +1023,34 @@ section.relational-list li ul {
 }
 section.relational-list p {
   font-size: .8rem;
+}
+
+.function-key {
+  margin: 12px auto;
+}
+.function-key a {
+  background-color: rgba(0,0,0,.05);
+  border-radius: 4px;
+  color: #999;
+  display: inline-block;
+  font-size: .8rem;
+  line-height: 1.2em;
+  padding: .5em 1em;
+  text-decoration: none;
+  transition: background-color .8s ease, padding .5s ease-out;
+}
+.function-key a:hover {
+  background-color: rgba(0,0,0,.25);
+  color: #000;
+}
+.function-key a i {
+  color: #666;
+  font-family: Arial, sans-serif;
+  font-style: normal;
+  margin-right: .25em;
+}
+.function-key a:hover i {
+  color: #fff;
 }
 
 /* ------------------------------------------------------------ */
@@ -884,6 +1127,11 @@ html.install #page-header {
 #signin .err {
   color: #fc0;
 }
+#signin .warn {
+  color: #fc0;
+  font-size: .8rem;
+  margin-top: 3rem;
+}
 
 /**
  * only for user edit page
@@ -923,6 +1171,17 @@ html.install #page-header {
 #file-uploader {
   font-size: 0;
 }
+#file-uploader .caution {
+  color: #009;
+  font-size: .725rem;
+  line-height: 1.8;
+  margin: 0 auto 1ex;
+}
+#file-uploader .caution:before {
+  color: #69f;
+  content: '※';
+  margin: auto .25em;
+}
 .file-set {
   border-left: 2px dotted rgba(255,0,0,0);
   display: inline-block;
@@ -947,6 +1206,7 @@ html.install #page-header {
 .file-set label.selected {
   background-image: none;
   border: 1px solid #ccc;
+  cursor: context-menu;
 }
 .file-set input[type="file"] {
   display: none;
@@ -984,6 +1244,51 @@ html.install #page-header {
   position: absolute;
   right: 0;
   text-align: center;
+}
+.file-set .popup {
+  background: #ccc; 
+  border: 1px solid #666;
+  border-radius: 6px;
+  bottom: 100%;
+  box-shadow: 1px 2px 10px 0 rgba(0,0,0,.4);
+  font-size: .7rem;
+  left: -1rem;
+  padding: 8px 8px 16px;
+  position: absolute;
+  visibility: hidden;
+}
+.file-set .popup.show {
+  visibility: visible;
+}
+.file-set .popup:after {
+  border: 10px solid transparent;
+  border-top-color: #666;
+  content: '';
+  display: block;
+  height: 0;
+  left: 2rem;
+  position: absolute;
+  top: 100%;
+  width: 0;
+}
+.file-set .popup b {
+  color: #666;
+  font-size: .7rem;
+  font-weight: normal;
+}
+.file-set .popup textarea {
+  border: 0 none transparent;
+  font-size: .8rem;
+  height: 5rem;
+  resize: none;
+  width: 240px;
+}
+.file-set .popup select {
+  background: #fff url(pulldown.svg) no-repeat 100% 50%;
+  background-size: 28px 20px;
+  font-size: .8rem;
+  margin-top: .25em;
+  width: 240px;
 }
 
 nav.insert {
@@ -1149,6 +1454,10 @@ div.alert section h2 {
   width: 320px;
   padding: 24px 12px 16px;
 }
+#subform-container form.assist {
+  flex-grow: 0;
+  height: auto;
+}
 #subform-container form h1 {
   font-size: 1.4rem;
   margin: 0 0 1em;
@@ -1163,7 +1472,8 @@ div.alert section h2 {
   display: block;
   font-size: .8rem;
   font-weight: 400;
-  padding: 0 0 0 4px;
+  margin-bottom: 2px;
+  padding: 0;
   text-align: initial;
   vertical-align: initial;
   white-space: nowrap;
@@ -1175,7 +1485,9 @@ div.alert section h2 {
 #subform-container .fieldset div.input,
 #subform-container .fieldset input.sametext,
 #subform-container .fieldset input[type="password"],
-#subform-container .fieldset input[type="text"] {
+#subform-container .fieldset input[type="text"],
+#subform-container .fieldset select,
+#subform-container .fieldset textarea {
   border-left: 1px solid #ccc;
   border-radius: 4px;
 }
@@ -1187,6 +1499,18 @@ div.alert section h2 {
 #subform-container .invalid textarea,
 #subform-container .invalid label {
   border-color: #f99;
+}
+#subform-container .fieldset div.extension {
+  display: block;
+  line-height: 1.2;
+  margin: 8px 4px;
+  padding: 0;
+  text-align: justify;
+}
+#subform-container .fieldset div.extension span {
+  color: #369;
+  font-size: .8rem;
+  font-weight: 200;
 }
 /* end of Subform stsyles */
 

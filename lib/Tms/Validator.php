@@ -128,7 +128,11 @@ class Validator
 
         switch ($type) {
             case 'digit':
-                return ctype_digit($value);
+                $result = ctype_digit($value);
+                break;
+            case 'disallowtags':
+                $striped = strip_tags($value);
+                $result = ($striped === $value);
                 break;
             case 'double':
                 if (   preg_match('/^[0-9]*\.[0-9]+$/', $value)
@@ -173,6 +177,7 @@ class Validator
                 $result = ($value[0] === $value[1]);
                 break;
             case 'upload':
+                $result = true;
                 if ($value['error'] > 0) {
                     $result = false;
                     $this->_checker[$key]['errnum'] = $value['error'];

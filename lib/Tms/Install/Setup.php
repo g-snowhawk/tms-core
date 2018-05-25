@@ -150,7 +150,7 @@ class Setup
 
                 break;
             case 'step3':
-                $valid[] = ['vl_company', 'company', 'empty'];
+                $valid[] = ['vl_fullname', 'fullname', 'empty'];
                 $valid[] = ['vl_email', 'email', 'empty'];
                 $valid[] = ['vl_uname', 'uname', 'empty'];
                 $valid[] = ['vl_upass', 'upass', 'empty'];
@@ -218,7 +218,7 @@ class Setup
         $result = true;
 
         $validator = new \Tms\Validator($valid);
-        $errors = $validator->valid($this->request->param());
+        $errors = $validator->valid($this->request->param(), $this->request->files());
         foreach ($errors as $key => $value) {
             if ($value === 1) {
                 $result = false;

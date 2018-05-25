@@ -68,7 +68,7 @@ class Db extends \P5\Db
      */
     public function TABLE($key)
     {
-        return $this->prefix.strtolower($key);
+        return (strpos($key, $this->prefix) !== 0) ? $this->prefix.strtolower($key) : $key;
     }
 
     /**
@@ -101,7 +101,7 @@ class Db extends \P5\Db
      */
     public function insert($table, array $data, $raws = null, $fields = null)
     {
-        return parent::insert($this->TABLE($table), $data, $raws, $fields);
+        return parent::insert(self::TABLE($table), $data, $raws, $fields);
     }
 
     /**
@@ -118,7 +118,7 @@ class Db extends \P5\Db
      */
     public function update($table, $data, $statement = '', $options = array(), $raws = null, $fields = null)
     {
-        return parent::update($this->TABLE($table), $data, $statement, $options, $raws);
+        return parent::update(self::TABLE($table), $data, $statement, $options, $raws);
     }
 
     /**
@@ -134,7 +134,7 @@ class Db extends \P5\Db
      */
     public function replace($table, array $data, $unique, $raws = array(), $fields = null)
     {
-        return parent::replace($this->TABLE($table), $data, $unique, $raws);
+        return parent::replace(self::TABLE($table), $data, $unique, $raws);
     }
 
     /**
@@ -148,7 +148,7 @@ class Db extends \P5\Db
      */
     public function delete($table, $statement = '', $options)
     {
-        return parent::delete($this->TABLE($table), $statement, $options);
+        return parent::delete(self::TABLE($table), $statement, $options);
     }
 
     /**
@@ -163,7 +163,7 @@ class Db extends \P5\Db
      */
     public function updateOrInsert($table, array $data, $unique, $raws = [])
     {
-        return parent::updateOrInsert($this->TABLE($table), $data, $unique, $raws);
+        return parent::updateOrInsert(self::TABLE($table), $data, $unique, $raws);
     }
 
     /**
@@ -178,7 +178,7 @@ class Db extends \P5\Db
      */
     public function select($columns, $table, $statement = '', $options = array())
     {
-        return parent::select($columns, $this->TABLE($table), $statement, $options);
+        return parent::select($columns, self::TABLE($table), $statement, $options);
     }
 
     /**
@@ -193,7 +193,7 @@ class Db extends \P5\Db
      */
     public function selectSingle($columns, $table, $statement = '', $options = array())
     {
-        $result = parent::select($columns, $this->TABLE($table), $statement, $options);
+        $result = parent::select($columns, self::TABLE($table), $statement, $options);
         if (is_array($result) && count($result) > 0) {
             return array_shift($result);
         }
@@ -212,7 +212,7 @@ class Db extends \P5\Db
      */
     public function exists($table, $statement = '', $options = array())
     {
-        return parent::exists($this->TABLE($table), $statement, $options);
+        return parent::exists(self::TABLE($table), $statement, $options);
     }
 
     /**
@@ -227,7 +227,7 @@ class Db extends \P5\Db
      */
     public function get($column, $table, $statement = '', $options = array())
     {
-        return parent::get($column, $this->TABLE($table), $statement, $options);
+        return parent::get($column, self::TABLE($table), $statement, $options);
     }
 
     /**
@@ -242,7 +242,7 @@ class Db extends \P5\Db
      */
     public function min($column, $table, $statement = '', $options = array())
     {
-        return parent::min($column, $this->TABLE($table), $statement, $options);
+        return parent::min($column, self::TABLE($table), $statement, $options);
     }
 
     /**
@@ -257,7 +257,7 @@ class Db extends \P5\Db
      */
     public function max($column, $table, $statement = '', $options = array())
     {
-        return parent::max($column, $this->TABLE($table), $statement, $options);
+        return parent::max($column, self::TABLE($table), $statement, $options);
     }
 
     /**
@@ -287,7 +287,7 @@ class Db extends \P5\Db
      */
     public function count($table, $statement = '', $options = [])
     {
-        return parent::count($this->TABLE($table), $statement, $options);
+        return parent::count(self::TABLE($table), $statement, $options);
     }
 
     /**
@@ -339,15 +339,7 @@ class Db extends \P5\Db
      */
     public function build($sql, $options)
     {
-        $sql = preg_replace_callback(
-            "/table::([^\s]+)/",
-            function ($matches) {
-                return $this->TABLE($matches[1]);
-            },
-            $sql
-        );
-
-        return $this->prepareStatement($sql, $options);
+        return $this->prepareStatement(str_replace('table::', $this->prefix, $sql), $options);
     }
 
     /**
@@ -359,14 +351,7 @@ class Db extends \P5\Db
      */
     public function prepare($statement)
     {
-        $statement = preg_replace_callback(
-            "/table::([^\s]+)/",
-            function ($matches) {
-                return $this->TABLE($matches[1]);
-            },
-            $statement
-        );
-        return parent::prepare($statement);
+        return parent::prepare(str_replace('table::', $this->prefix, $statement));
     }
 
     /**
@@ -663,6 +648,41 @@ class Db extends \P5\Db
         return $this->getAll(self::nsmNodePathSQL($columns, $top, $middle, $bottom), $options);
     }
 
+    public function nsmBeforeInsertChildSQL($table, $option = '')
+    {
+        return str_replace('table::', $this->prefix, 
+            "UPDATE table::$table
+                SET lft = CASE WHEN lft > :parent_rgt
+                               THEN lft + :offset
+                               ELSE lft END,
+                    rgt = CASE WHEN rgt >= :parent_rgt
+                               THEN rgt + :offset
+                               ELSE rgt END
+              WHERE rgt >= :parent_rgt$option"
+        );
+    }
+
+    public function nsmCleanupSQL($table)
+    {
+        $lftrgt = "SELECT lft AS seq FROM table::$table
+                    UNION ALL
+                   SELECT rgt AS seq FROM table::$table";
+        return str_replace('table::', $this->prefix, 
+            "UPDATE table::$table
+                SET lft = (SELECT COUNT(*)
+                             FROM ($lftrgt) LftRgt
+                            WHERE seq <= lft),
+                    rgt = (SELECT COUNT(*)
+                             FROM ($lftrgt) LftRgt
+                            WHERE seq <= rgt)"
+        );
+    }
+
+    public function nsmCleanup($table)
+    {
+        return parent::exec(self::nsmCleanupSQL($table));
+    }
+
     /**
      * Copy record.
      *
@@ -679,8 +699,8 @@ class Db extends \P5\Db
         if (empty($source)) {
             $source = $dest;
         }
-        $dest = $this->TABLE($dest);
-        $source = $this->TABLE($source);
+        $dest = self::TABLE($dest);
+        $source = self::TABLE($source);
 
         $sql = "INSERT INTO $dest
                      SELECT ".implode(',', $cols)."
@@ -689,7 +709,7 @@ class Db extends \P5\Db
             $sql .= " WHERE $statement";
         }
 
-        return $this->exec(self::build($sql, $options));
+        return parent::exec(self::build($sql, $options));
     }
 
     /**
@@ -705,7 +725,7 @@ class Db extends \P5\Db
     {
         // compatible
         if (strpos($table, $this->prefix) !== 0) {
-            $table = $this->TABLE($table);
+            $table = self::TABLE($table);
         }
 
         return parent::getFields($table, $property, $comment);

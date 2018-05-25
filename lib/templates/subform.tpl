@@ -2,6 +2,7 @@
   <input type="hidden" name="stub" value="{{ stub }}">
   {% block main %}{% endblock %}
 </form>
+{% block side %}{% endblock %}
 <div id="cancel-subform">
   <a href="#container" id="cancel-subform-button">閉じる</a>
 </div>

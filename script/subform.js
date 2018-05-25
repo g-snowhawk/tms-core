@@ -19,6 +19,7 @@ function Subform() {
     this.cnTransition = 'trans-left';
     this.subformWidth = undefined;
     this.pollingTimer = undefined;
+    this.startPollingDelay = 1000;
     this.pollingInterval = 10000;
     this.finally = undefined;
     this.onLoad(this, 'init');
@@ -84,7 +85,7 @@ Subform.prototype.close = function(container) {
 
 Subform.prototype.open = function(element) {
     var instance = TM.subform;
-    TM.xhr.init('GET', element.href, false, function(event){
+    TM.xhr.init('GET', element.href, true, function(event){
         if(this.status == 200){
             try {
                 var json = JSON.parse(this.responseText);
@@ -113,7 +114,7 @@ Subform.prototype.posted = function(json, form) {
     }
     else if (json.status === 45) {
         if (json.arguments && json.arguments.polling_id) {
-            this.pollingTimer = setTimeout(this.polling, this.pollingInterval, json.arguments.polling_address + "&polling_id=" + json.arguments.polling_id);
+            this.pollingTimer = setTimeout(this.polling, this.startPollingDelay, json.arguments.polling_address + "&polling_id=" + json.arguments.polling_id);
         }
         return;
     }
@@ -124,7 +125,8 @@ Subform.prototype.posted = function(json, form) {
             location.href = json.response.source;
             break;
         case 'callback':
-            TM.apply(json.response.source, []);
+            var args = json.arguments ? json.arguments : [];
+            TM.apply(json.response.source, args);
             break;
         default:
             var template = document.createElement('template');
@@ -167,7 +169,7 @@ Subform.prototype.submit = function(form) {
     }
 
     var instance = TM.subform;
-    TM.xhr.init('POST', form.action, false, function(event){
+    TM.xhr.init('POST', form.action, true, function(event){
         if(this.status == 200){
             try {
                 var json = JSON.parse(this.responseText);
@@ -195,6 +197,10 @@ Subform.prototype.submit = function(form) {
     var formData = new FormData(form);
     formData.append('returntype', 'json');
     TM.xhr.send(formData);
+};
+
+Subform.prototype.download = function(mode) {
+    location.href = mode;
 };
 
 Subform.prototype.progress = function(args) {
@@ -245,7 +251,7 @@ Subform.prototype.hideLog = function() {
 Subform.prototype.polling = function(url) {
     var instance = TM.subform;
     var xhr = new TM_XMLHttpRequest();
-    xhr.init('GET', url, false, function(event){
+    xhr.init('GET', url, true, function(event){
         if(this.status == 200){
             try {
                 var json = JSON.parse(this.responseText);
@@ -261,7 +267,7 @@ Subform.prototype.polling = function(url) {
             if (json.finally) {
                 instance.finally = json.finally;
             }
-            TM.apply(json.callback, json.arguments);
+            TM.apply(json.response.source, json.arguments);
         } else {
             // TODO: add error handling
             console.log(this.responseText);

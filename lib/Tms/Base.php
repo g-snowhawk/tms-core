@@ -483,6 +483,8 @@ abstract class Base
         } catch (PermitException $e) {
             $this->view->bind('alert', $e->getMessage());
             $this->view->render('permitfailure.tpl');
+        } catch (ViewException $e) {
+            trigger_error($e->getMessage(), E_USER_ERROR);
         } catch (\Exception $e) {
             $this->view->bind('alert', $e->getMessage());
             $this->view->render('systemerror.tpl');

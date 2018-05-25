@@ -3,7 +3,7 @@
 {% block head %}
   <script src="script/subform.js"></script>
   <script src="script/user_alias.js"></script>
-{$ endblock %}
+{% endblock %}
 
 {% block main %}
   {% if post.profile != 1 %}
@@ -88,6 +88,12 @@
           <label><input type="checkbox" name="admin" value="1"{% if post.admin == '1' %} checked{% endif %}>システム管理を許可する</label>
         </div>
       </div>
+      <div class="fieldset">
+        <div class="legend">GRANT OPTION</div>
+        <div class="input">
+          <label><input type="checkbox" name="grant" value="1"{% if apps.hasPermissionByUser(post.id,'user.grant',0,0) == '1' %} checked{% endif %}>ユーザー管理権限の付与を許可する</label>
+        </div>
+      </div>
     {% endif %}
 
     <script src="script/tms_user.js" charset="utf-8"></script>
@@ -109,7 +115,7 @@
       {% if apps.view.exists(template) %} 
         {% include template %}
       {% endif %}
-    {% elseif not apps.hasPermission('root') and apps.app.cnf('global:enable_user_alias') == '1' %} 
+    {% elseif not apps.hasPermission('root') and config.global.enable_user_alias == '1' %} 
       {% include 'user/alias_list.tpl' %}
     {% endif %}
 
