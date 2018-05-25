@@ -14,6 +14,7 @@ var TM_Upload = function() {
     this.lstr = '';
     this.mstr = '';
     this.rstr = '';
+    this.popupwindow = undefined;
 };
 TM_Upload.prototype.init = function(ev) {
     var els = document.getElementsByClassName('image-selector');
@@ -43,29 +44,26 @@ TM_Upload.prototype.init = function(ev) {
 };
 TM_Upload.prototype.onClick = function(ev) {
     ev.preventDefault();
-    TM.upload.delete(ev.target);
+    TM.upload.delete(ev.currentTarget);
 };
 TM_Upload.prototype.onChange = function(ev) {
-    if(ev.target.value == ''){
+    if(ev.currentTarget.value == ''){
         ev.preventDefault();
         return;
     }
-    TM.upload.thumbnail(ev.target);
+    TM.upload.thumbnail(ev.currentTarget);
 };
 TM_Upload.prototype.onDragCancel = function(ev) {
     ev.preventDefault();
 };
 TM_Upload.prototype.onDragStart = function(ev) {
-    var el = ev.target;
-    if(el.nodeName != 'IMG'){
-        return;
-    }
+    var el = ev.currentTarget;
     ev.dataTransfer.setData('src', el.src);
 };
 TM_Upload.prototype.onDrop = function(ev) {
     ev.preventDefault();
     ev.stopPropagation();
-    var el = ev.target;
+    var el = ev.currentTarget;
     if(el.id != 'body'){
         return;
     }
@@ -156,8 +154,10 @@ TM_Upload.prototype.thumbnail = function(el) {
             }
         }
         var img = span.appendChild(document.createElement('img'));
+        var fileType;
         if(this.result.match('^data:image/(jpeg|png|gif)')){
             img.src = this.result;
+            fileType = 'image';
         } else {
             var dir = location.pathname.replace(/[^\/]+$/, '');
             img.src = dir + 'style/icon_pdf.svg';
@@ -165,6 +165,7 @@ TM_Upload.prototype.thumbnail = function(el) {
             var spn = span.appendChild(document.createElement('span'));
             spn.className = "filename";
             spn.innerHTML = TM.basename(el.value);
+            fileType = 'pdf';
         }
         img.title = el.value;
         img.draggable = false;
@@ -174,6 +175,17 @@ TM_Upload.prototype.thumbnail = function(el) {
         a.href = '#delete';
         a.className = 'mark';
         a.addEventListener('click', TM.upload.onClick, false);
+
+        var template = document.getElementById('popup-note');
+        var popup = template.content.querySelector('.popup');
+        if (fileType !== 'pdf') {
+            var select = popup.querySelector('select');
+            if (select) {
+                select.parentNode.removeChild(select);
+            }
+        }
+        prn.appendChild(popup.cloneNode(true));
+        prn.addEventListener('contextmenu', this.onContextMenu, false);
     }
     render.readAsDataURL(file);
 };

@@ -6,10 +6,10 @@
   <form id="TMS-mainform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}">
     <input type="hidden" name="stub" value="{{ stub }}">
     <div class="input">
-      <input type="text" name="uname" id="uname" placeholder="ユーザー名" value="{{ post.uname }}">
+      <input type="text" name="uname" id="uname" placeholder="ユーザー名" value="{{ post.uname }}" autocapitalize="off" required>
     </div>
     <div class="input">
-      <input type="password" name="upass" id="upass" placeholder="パスワード" autocomplete="off">
+      <input type="password" name="upass" id="upass" placeholder="パスワード" autocomplete="off" required>
     </div>
 {% if err.vl_nocookie == 1 %}
     <div class="err">

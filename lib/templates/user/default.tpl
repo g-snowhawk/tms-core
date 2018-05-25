@@ -13,16 +13,20 @@
         <tr>
           <td>フルネーム</td>
           <td>E-mail</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
+          <td>登録日</td>
+          <td>更新日</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
         </tr>
       </thead>
       <tbody>
         {% for unit in users %}
           <tr>
-            <td>{{ unit.company }}</td>
+            <td>{{ unit.fullname }}</td>
             <td class="spacer">{{ unit.email }}</td>
+            <td class="date">{{ unit.create_date|date('Y年n月j日 H:i') }}</td>
+            <td class="date">{{ unit.modify_date|date('Y年n月j日 H:i') }}</td>
             {% if apps.hasPermission('system') %}
               <td class="button"><a href="?mode=user.response:switchUser&id={{ unit.id|url_encode }}">切替</a></td>
             {% else %}
@@ -41,7 +45,8 @@
           </tr>
         {% else %}
           <tr>
-            <td class="nowrap" colspan="2">ユーザーの登録がありません</td>
+            <td class="nowrap empty" colspan="4">ユーザーの登録がありません</td>
+            <td></td>
             <td></td>
             <td></td>
           </tr>
@@ -51,7 +56,7 @@
     <div class="footer-controls">
       <nav class="links">
         {% if apps.hasPermission('user.create') %}
-          <a href="?mode=user.response:edit">＋新規ユーザー</a>
+          <a href="?mode=user.response:edit"><i class="mark">+</i>新規ユーザー</a>
         {% else %}
           <span class="dummy">&nbsp;</span>
         {% endif %}

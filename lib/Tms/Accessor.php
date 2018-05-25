@@ -27,6 +27,9 @@ trait Accessor
      */
     public function __get($name)
     {
+        if ($name === 'app') {
+            throw new \ErrorException("Cannot access protected property $name");
+        }
         if (property_exists($this, $name)) {
             return $this->$name;
         }
@@ -43,7 +46,10 @@ trait Accessor
      */
     public function __isset($name)
     {
-        if (property_exists($this, $name)) {
+        if ($name === 'app') {
+            return false;
+        }
+        if (property_exists($this, $name) && !is_null($this->$name)) {
             return true;
         }
 

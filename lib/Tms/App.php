@@ -104,6 +104,14 @@ class App extends Base
             exit;
         }
 
+        // Single application
+        if (!empty($this->cnf('application:fixed_application_name'))) {
+            $this->session->param(
+                'application_name',
+                $this->cnf('application:fixed_application_name')
+            );
+        }
+
         $loggedin = ($this->session->param('authorized'))
             ? $this->session->param('authorized') : 'failed';
 
@@ -131,6 +139,9 @@ class App extends Base
                     break;
                 case 'sqlite':
                     $installed = $this->db->recordCount("SELECT name FROM sqlite_master WHERE type = 'table'");
+                    break;
+                default :
+                    $installed = 1;
                     break;
             }
             if ($installed === 0) {

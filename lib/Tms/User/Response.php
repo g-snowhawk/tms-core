@@ -121,8 +121,24 @@ class Response extends \Tms\User
         $this->view->bind('post', $post);
 
         $perms = [];
-        $perms['global'] = $this->getPrivileges($this->uid);
-        $this->view->bind('perms', $perms);
+        $global = $this->getPrivileges($this->uid);
+        foreach ($global as $tmp => $priv) {
+            $parent = &$perms;
+            $keys = explode('.', $tmp);
+            foreach ($keys as $key) {
+                if (empty($key)) {
+                    continue;
+                }
+                if (!isset($parent[$key])) {
+                    $parent[$key] = [];
+                }
+                $parent = &$parent[$key];
+            }
+            $parent = $priv;
+            unset($parent);
+        }
+
+        $this->view->bind('perms', ['global' => $perms]);
 
         $globals = $this->view->param();
         $form = $globals['form'];
@@ -204,7 +220,9 @@ class Response extends \Tms\User
      */
     public function editAlias()
     {
-        $this->checkPermission('user.read');
+        if ($this->request->param('id') !== $this->uid) {
+            $this->checkPermission('user.alias');
+        }
 
         if ($this->request->method === 'post') {
             $post = $this->request->post();

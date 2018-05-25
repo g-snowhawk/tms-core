@@ -23,7 +23,7 @@ abstract class Common
      *
      * @var Tms_App
      */
-    public $app;
+    protected $app;
 
     /*
      * Pagination class
@@ -40,7 +40,7 @@ abstract class Common
     public $template_file = 'default.html.twig';
 
     /**
-     * Object Constructer.
+     * Object Constructor.
      */
     public function __construct()
     {
@@ -70,11 +70,12 @@ abstract class Common
     public function __isset($name)
     {
         switch ($name) {
+            case 'app': return false;
             case 'isAjax': return true;
             case 'view': return true;
         }
 
-        return property_exists($this, $name);
+        return property_exists($this, $name) && !is_null($this->$name);
     }
 
     /**
@@ -87,6 +88,7 @@ abstract class Common
     public function __get($name)
     {
         switch ($name) {
+            case 'app': return null;
             case 'db': return $this->app->db;
             case 'env': return $this->app->env;
             case 'isAjax': return \Tms\Base::isAjax();
@@ -134,17 +136,28 @@ abstract class Common
             }
         }
 
-        $result = true;
-        $v = new \Tms\Validator($valid);
-        $err = $v->valid($this->request->param(), $this->request->files());
-        foreach ($err as $key => $value) {
-            if ($value >= 1) {
-                $result = false;
+        $errors = [];
+        $validator = new \Tms\Validator($valid);
+        $error = $validator->valid($this->request->param(), $this->request->files());
+        foreach ($error as $key => $value) {
+            if ($value > 0) {
+                $errors[$key] = $value;
             }
             $this->app->err[$key] = $value;
         }
 
-        return $result;
+        $plugins = $this->app->execPlugin('afterValidate');
+        foreach ($this->app->err as $key => $value) {
+            if ($value === 0) {
+                if (isset($errors[$key])) {
+                    unset($errors[$key]);
+                }
+                continue;
+            }
+            $errors[$key] = $value;
+        }
+
+        return count($errors) === 0;
     }
 
     /**
@@ -201,6 +214,7 @@ abstract class Common
                 $nav[] = [
                     'code' => $class::packageName(),
                     'name' => $class::applicationName(),
+                    'class' => $class,
                 ];
             }
         }
@@ -215,6 +229,12 @@ abstract class Common
 
     public function init()
     {
+        $config = [
+            'global' => [
+                'enable_user_alias' => $this->app->cnf('global:enable_user_alias')
+            ]
+        ];
+        $this->view->bind('config', $config);
         $this->view->bind('apps', $this);
         $this->view->bind('nav', $this->navItems());
     }
@@ -393,24 +413,30 @@ abstract class Common
         return file_put_contents($this->pollingPath(), $data);
     }
 
-    protected function echoPolling()
+    protected function echoPolling(Array $response = null)
     {
         $polling_file = $this->pollingPath();
 
         $json = [
             'status' => 'ended',
-            'callback' => 'TM.subform.ended',
+            'response' => [
+                'type' => 'callback',
+                'source' => 'TM.subform.ended',
+            ],
             'arguments' => []
         ];
         if (file_exists($polling_file) && is_file($polling_file)) {
-            $json['callback'] = 'TM.subform.progress';
+            $json['response']['source'] = 'TM.subform.progress';
             $json['arguments'] = [file_get_contents($polling_file)];
         } elseif (file_exists("$polling_file.log")) {
-            $json['callback'] = 'TM.subform.showLog';
+            $json['response']['source'] = 'TM.subform.showLog';
             $json['arguments'] = [
                 $this->request->param('polling_id'),
                 $this->classNameToMode().':showPollingLog'
             ];
+        }
+        if (!is_null($response)) {
+            $json['response'] = $response;
         }
 
         // TODO: $json['finally'] support dynamically setting
@@ -423,6 +449,7 @@ abstract class Common
         \P5\Http::nocache();
         \P5\Http::responseHeader('Content-type','application/json');
         echo json_encode($json);
+        exit;
     }
 
     protected function pollingPath()
@@ -447,5 +474,22 @@ abstract class Common
         }
 
         exit;
+    }
+
+    /**
+     * template by other application
+     */
+    protected function useExtendedTemplate()
+    {
+        $items = $this->navItems();
+        foreach ($items as $item) {
+            $class = $item['class'];
+            $class = '\\'.ltrim($class, '\\');
+            if (method_exists($class, 'extendedTemplatePath')) {
+                $path = $class::extendedTemplatePath(\P5\Http::getURI(), $this);
+                //$this->view->addPath($path);
+                $this->view->prependPath($path);
+            }
+        }
     }
 }

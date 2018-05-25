@@ -9,6 +9,7 @@
  */
 function FixTheadOnVerticalScroll() {
     this.inited = false;
+    this.timer = 0;
     this.cnTable = 'ftv-table';
     this.cnHorizontalScroller = 'ftv-h-scroller';
     this.cnVerticalScroller = 'ftv-v-scroller';
@@ -50,7 +51,14 @@ FixTheadOnVerticalScroll.prototype.fix = function(table) {
     verticalScroller.className = this.cnVerticalScroller;
 
     var thead = table.querySelector('thead');
-    fixedHeader.appendChild(thead.cloneNode(true));
+    var cloneThead = fixedHeader.appendChild(thead.cloneNode(true));
+
+    //var colgroup = fixedHeader.insertBefore(document.createElement('colgroup'), cloneThead);
+    //var cells = cloneThead.getElementsByTagName('td');
+    //for (i = 0; i < cells.length; i++) {
+    //    var col = colgroup.appendChild(document.createElement('col'));
+    //    col.setAttribute('span', 1);
+    //}
 
     table.parentNode.insertBefore(horizontalScroller, table);
     verticalScroller.appendChild(table);
@@ -68,8 +76,11 @@ FixTheadOnVerticalScroll.prototype.alignAll = function() {
 };
 
 FixTheadOnVerticalScroll.prototype.align = function(horizontalScroller) {
-    var tableRowFixed = horizontalScroller.querySelector('.' + this.cnFixedHeader).querySelector('tr');
-    var tableRowOrigin = horizontalScroller.querySelector('.' + this.cnVerticalScroller).querySelector('tr');
+    var tableFixed = horizontalScroller.querySelector('.' + this.cnFixedHeader);
+    var tableOrigin = horizontalScroller.querySelector('.' + this.cnVerticalScroller).querySelector('table');
+
+    var tableRowFixed = tableFixed.querySelector('tr');
+    var tableRowOrigin = tableOrigin.querySelector('tr');
 
     var tableCellsFixed = tableRowFixed.getElementsByTagName('td');
     var tableCellsOrigin = tableRowOrigin.getElementsByTagName('td');
@@ -79,10 +90,13 @@ FixTheadOnVerticalScroll.prototype.align = function(horizontalScroller) {
         return;
     }
 
-    var i, max;
+    tableFixed.style.width = '';
+    var i, max, origin;
     for (i = 0, max = tableCellsOrigin.length; i < max; i++) {
-        tableCellsFixed[i].style.width = tableCellsOrigin[i].offsetWidth + 'px';
+        origin = tableCellsOrigin[i];
+        tableCellsFixed[i].style.width = window.getComputedStyle(origin).width;
     }
+    tableFixed.style.width = window.getComputedStyle(tableOrigin).width;
 
     // overflow for vertical scroll
     var flexColumn = horizontalScroller.querySelector('.' + this.cnFlexColumn);
@@ -90,10 +104,18 @@ FixTheadOnVerticalScroll.prototype.align = function(horizontalScroller) {
     if (flexColumn.clientWidth < table.clientWidth) {
         flexColumn.style.width = table.clientWidth + 'px';
     }
+    else {
+        flexColumn.style.width = 'auto';
+    }
 };
 
 FixTheadOnVerticalScroll.prototype.onResize = function(ev) {
-    window.fixTheadOnVerticalScroll.alignAll();
+    var instance = window.fixTheadOnVerticalScroll.alignAll();
+    //var instance = window.fixTheadOnVerticalScroll;
+    //if (instance.timer > 0) {
+    //    clearTimeout(instance.timer);
+    //}
+    //instance.timer = setTimeout(instance.alignAll(), 300);
 };
 
 FixTheadOnVerticalScroll.prototype.onLoad = function(scope, func) {

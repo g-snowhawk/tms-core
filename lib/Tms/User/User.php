@@ -143,18 +143,11 @@ class User extends \Tms\Common
             $save['rgt'] = $parent_rgt + 1;
 
             $update_parent = $this->db->prepare(
-                "UPDATE table::user
-                    SET lft = CASE WHEN lft > :parent_rgt
-                                   THEN lft + 2
-                                   ELSE lft END,
-                        rgt = CASE WHEN rgt >= :parent_rgt
-                                   THEN rgt + 2
-                                   ELSE rgt END
-                  WHERE rgt >= :parent_rgt"
+                $this->db->nsmBeforeInsertChildSQL('user', ' AND rgt IS NOT NULL')
             );
 
             $raw = ['create_date' => 'CURRENT_TIMESTAMP'];
-            if (   false !== $update_parent->execute(['parent_rgt' => $parent_rgt])
+            if (   false !== $update_parent->execute(['parent_rgt' => $parent_rgt, 'offset' => 2])
                 && false !== $result = $this->db->insert($table, $save, $raw)
             ) {
                 $post['id'] = $this->db->lastInsertId(null, 'id');
@@ -244,11 +237,32 @@ class User extends \Tms\Common
         }
 
         // Administrators have full control
-        if ($this->isAdmin()) {
+        if ($key !== 'user.grant' && $this->isAdmin()) {
             return true;
         }
 
         $perm = $this->getPrivilege($key, $filter1, $filter2);
+
+        if (strchr($key, '.exec') === '.exec') {
+            return $perm !== '0';
+        }
+
+        return $perm === '1';
+    }
+
+    /**
+     * Reference permission.
+     *
+     * @param bool   $userkey
+     * @param string $key
+     * @param int    $filter1
+     * @param int    $filter2
+     *
+     * @return bool
+     */
+    public function hasPermissionByUser($userkey, $key, $filter1 = 0, $filter2 = 0)
+    {
+        $perm = $this->privilege($userkey, $key, $filter1, $filter2);
 
         if (strchr($key, '.exec') === '.exec') {
             return $perm !== '0';
@@ -325,6 +339,12 @@ class User extends \Tms\Common
             }
         }
 
+        if ($this->request->param('grant') === '1') {
+            if (false === $this->savePermission('user.grant', '1', $userkey, 0, 0)) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -398,15 +418,21 @@ class User extends \Tms\Common
 
     public function getPrivilege($key, $filter1, $filter2)
     {
-        if (empty($this->uid)) {
-            return;
-        }
+        return (empty($this->uid)) ? '0' : $this->privilege($this->uid, $key, $filter1, $filter2);
+    }
 
+    private function privilege($userkey, $key, $filter1 = 0, $filter2 = 0)
+    {
         $options = array_values(self::parsePermissionKey($key));
         $statement = 'userkey = ? AND filter1 = ? AND filter2 = ? AND application = ? AND class = ? AND type = ?';
-        array_unshift($options, $this->uid, $filter1, $filter2);
+        array_unshift($options, $userkey, $filter1, $filter2);
 
         return $this->db->get('priv', 'permission', $statement, $options);
+    }
+
+    public function isAlias()
+    {
+        return !empty($this->session->param('alias'));
     }
 
     public function isAdmin()
@@ -474,8 +500,7 @@ class User extends \Tms\Common
     protected function saveAlias()
     {
         $id = $this->request->POST('id');
-        $check = (empty($id)) ? 'create' : 'update';
-        $this->checkPermission('user.'.$check);
+        $this->checkPermission('user.alias');
 
         $post = $this->request->post();
 
@@ -495,7 +520,6 @@ class User extends \Tms\Common
         $this->db->begin();
 
         $fields = $this->db->getFields($this->db->TABLE($table));
-        //$permissions = [];
         $save = [];
         $raw = [];
         foreach ($fields as $field) {
@@ -516,8 +540,8 @@ class User extends \Tms\Common
         if (empty($post['id'])) {
 
             $save['alias'] = $this->uid;
-            $save['lft'] = 1000000;
-            $save['rgt'] = 1000000;
+            $save['lft'] = null;
+            $save['rgt'] = null;
 
             $raw = ['create_date' => 'CURRENT_TIMESTAMP'];
             if (false !== $result = $this->db->insert($table, $save, $raw)) {
@@ -597,7 +621,7 @@ class User extends \Tms\Common
         }
 
         return $this->db->nsmGetDecendants(
-            'children.id, children.fullname, children.company, children.email',
+            'children.id, children.fullname, children.company, children.email, children.create_date, children.modify_date',
             '(SELECT * FROM table::user WHERE id = ?)',
             "(SELECT * FROM table::user WHERE $filter$orderby)",
             $options, $extensions
