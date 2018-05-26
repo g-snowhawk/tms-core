@@ -108,6 +108,10 @@ class User extends \Tms\Common
             $valid[] = ['vl_uname', 'uname', 'empty'];
         }
 
+        $password = [$post['upass'], $post['retype']];
+        $this->request->post('password', $password);
+        $valid[] = ['vl_upass', 'password', 'retype'];
+
         if (!$this->validate($valid)) {
             return false;
         }

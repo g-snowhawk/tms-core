@@ -98,12 +98,17 @@
 
     <script src="script/tms_user.js" charset="utf-8"></script>
     <h2><a href="#update-password" class="accordion-switcher" data-callback="erasePassword">パスワード{% if post.id is empty %}設定{% else %}変更{% endif %}</a></h2>
-    <div id="update-password" class="accordion">
+    <div id="update-password" class="accordion{% if err.vl_upass == 1 %} opened{% endif %}">
+      {% if err.vl_upass == 1 %}
+          <div class="error">
+            <i>入力に誤りがあります</i>
+          </div>
+      {% endif %}
       <div class="fieldset{% if err.vl_upass == 1 %} invalid{% endif %}">
         <label for="upass">パスワード</label>
         <input type="password" placeholder="半角英数字" name="upass" id="upass" autocomplete="off">
       </div>
-      <div class="fieldset{% if err.vl_retype == 1 %} invalid{% endif %}">
+      <div class="fieldset{% if err.vl_upass == 1 %} invalid{% endif %}">
         <label for="retype">再入力</label>
         <input type="password" placeholder="半角英数字" name="retype" id="retype" autocomplete="off">
       </div>
