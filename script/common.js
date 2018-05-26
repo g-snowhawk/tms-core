@@ -332,8 +332,14 @@ TM_Accordion.prototype.init = function() {
         var tg = document.getElementById(TM.hash(el.href).substr(1));
         if(!tg) continue;
         tg.dataset.height = tg.clientHeight;
-        tg.style.height = '0';
-        tg.classList.add('close');
+        if (tg.classList.contains('opened')) {
+            tg.style.height = tg.dataset.height + 'px';
+            tg.classList.remove('opened');
+        }
+        else {
+            tg.style.height = '0';
+            tg.classList.add('close');
+        }
         el.addEventListener('click', this.onClick, false);
     }
 };
