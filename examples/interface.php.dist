@@ -39,8 +39,8 @@ define('ERROR_DOCUMENT', SYSTEM_ROOT . '/lib/templates/Error.tpl');
 const INCLUDE_PATH = array(
     '.',
     '..',
-    SYSTEM_ROOT.'/lib',
     SYSTEM_ROOT.'/data/apps',
+    SYSTEM_ROOT.'/lib',
 );
 
 /* ========================================================================== */
