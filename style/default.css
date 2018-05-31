@@ -85,8 +85,10 @@ input[type="submit"]:disabled {
 select,
 textarea,
 input.sametext,
-input[type="password"],
+input[type="datetime"],
 input[type="date"],
+input[type="time"],
+input[type="password"],
 input[type="text"] {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -100,11 +102,17 @@ input[type="text"] {
   vertical-align: top;
 }
 input.sametext,
+input[type="datetime"],
+input[type="date"],
+input[type="time"],
 input[type="password"],
 input[type="text"] {
   line-height: 1;
 }
 input.sametext:focus,
+input[type="datetime"],
+input[type="date"],
+input[type="time"],
 input[type="password"]:focus,
 input[type="text"]:focus,
 textarea:focus {
@@ -700,6 +708,9 @@ a.small-button:hover {
 .fieldset div.input,
 .fieldset fieldset,
 .fieldset input.sametext,
+.fieldset input[type="datetime"],
+.fieldset input[type="date"],
+.fieldset input[type="time"],
 .fieldset input[type="password"],
 .fieldset input[type="text"] {
   border-left: 0 none transparent;
@@ -711,8 +722,15 @@ a.small-button:hover {
 .fieldset input.normal{
   border: 1px solid #ccc;
   border-radius: 0;
-  font-size: .7rem;
+  font-size: .8rem;
   padding: 4px;
+  width: auto;
+}
+.fieldset select.normal{
+  border: 1px solid #ccc;
+  border-radius: 0;
+  font-size: .8rem;
+  padding: 4px 28px 4px 4px;
   width: auto;
 }
 .fieldset input.short {
@@ -836,26 +854,36 @@ input.datetime {
   text-align: center;
   width: auto !important;
 }
+input.time {
+  width: 5em !important;
+}
 
 
-.active label,
-.active fieldset,
-.active input.sametext,
-.active input[type="text"],
-.active input[type="password"],
-.active select,
-.active textarea {
+.active > div.input,
+.active > input.sametext,
+.active > input[type="datetime"],
+.active > input[type="date"],
+.active > input[type="time"],
+.active > input[type="text"],
+.active > input[type="password"],
+.active > select,
+.active > textarea,
+.active > fieldset,
+.active > label {
   border-color: #999;
 }
 /* form input error style */
-.invalid div.input,
-.invalid input.sametext,
-.invalid input[type="text"],
-.invalid input[type="password"],
-.invalid select,
-.invalid textarea,
-.invalid fieldset,
-.invalid label {
+.invalid > div.input,
+.invalid > input.sametext,
+.invalid > input[type="datetime"],
+.invalid > input[type="date"],
+.invalid > input[type="time"],
+.invalid > input[type="text"],
+.invalid > input[type="password"],
+.invalid > select,
+.invalid > textarea,
+.invalid > fieldset,
+.invalid > label {
   border-color: #f99;
 }
 .error {
@@ -1043,13 +1071,16 @@ section.relational-list p {
   background-color: rgba(0,0,0,.25);
   color: #000;
 }
-.function-key a i {
+.function-key a i,
+.function-key a mark {
+  background: transparent;
   color: #666;
   font-family: Arial, sans-serif;
   font-style: normal;
   margin-right: .25em;
 }
-.function-key a:hover i {
+.function-key a:hover i,
+.function-key a:hover mark {
   color: #fff;
 }
 
@@ -1484,6 +1515,9 @@ div.alert section h2 {
 }
 #subform-container .fieldset div.input,
 #subform-container .fieldset input.sametext,
+#subform-container .fieldset input[type="datetime"],
+#subform-container .fieldset input[type="date"],
+#subform-container .fieldset input[type="time"],
 #subform-container .fieldset input[type="password"],
 #subform-container .fieldset input[type="text"],
 #subform-container .fieldset select,
@@ -1493,8 +1527,11 @@ div.alert section h2 {
 }
 /* subform input error style */
 #subform-container .invalid input.sametext,
-#subform-container .invalid input[type="text"],
+#subform-container .invalid input[type="datetime"],
+#subform-container .invalid input[type="date"],
+#subform-container .invalid input[type="time"],
 #subform-container .invalid input[type="password"],
+#subform-container .invalid input[type="text"],
 #subform-container .invalid select,
 #subform-container .invalid textarea,
 #subform-container .invalid label {
