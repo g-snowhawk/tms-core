@@ -251,7 +251,9 @@ class Response extends \Tms\User
     {
         $status = $this->hasPermission('user.read');
 
-        if ($this->request->method === 'post') {
+        if (   $this->request->method === 'post'
+            && $this->request->post('request_type') !== 'response-subform'
+        ) {
             $post = $this->request->post();
         } else {
             $post = $this->db->get(
@@ -265,25 +267,17 @@ class Response extends \Tms\User
         $response = $this->view->render('user/alias_edit_subform.tpl', true);
 
         $json = [
-            'status' => status,
+            'status' => $status,
             'response' => $response,
         ];
 
         header('Content-type: text/plain; charset=utf-8');
         echo json_encode($json);
         exit;
-
-        //$globals = $this->view->param();
-        //$form = $globals['form'];
-        //$form['confirm'] = \P5\Lang::translate('CONFIRM_SAVE_DATA');
-        //$this->view->bind('form', $form);
-
-        //parent::defaultView('user-alias_edit');
     }
 
     public function aliasList()
     {
-
         $aliases = $this->db->select('id,fullname,email,uname','user','WHERE alias=?',[$this->uid]);
         $this->view->bind('aliases', $aliases);
 

@@ -181,7 +181,14 @@ class User extends \Tms\Common
                 return $this->db->commit();
             }
         }
-        trigger_error($this->db->error());
+        $error = $this->db->error();
+        if (preg_match("/Duplicate entry (.+) for key '(.+)'/", $error, $match)) {
+            $key = 'vl_' . $match[2];
+            $this->app->err[$key] = 301;
+        }
+        else {
+            trigger_error($error);
+        }
         $this->db->rollback();
 
         return false;
@@ -198,8 +205,20 @@ class User extends \Tms\Common
 
         $result = 0;
         $this->db->begin();
-        if (    false !== $result = $this->db->delete('user', 'id = ?', [$this->request->param('delete')])
-             && false !== $result = $this->db->delete('user', 'alias = ?', [$this->request->param('delete')])
+
+        $id = $this->request->param('delete');
+
+        $plugin_result = $this->app->execPlugin('beforeRemove', $id);
+        foreach($plugin_result as $plugin_count) {
+            if (false === $plugin_count) {
+                $result = false;
+                break;
+            }
+        }
+
+        if (    false !== $result
+             && false !== $result = $this->db->delete('user', 'id = ?', [$id])
+             && false !== $result = $this->db->delete('user', 'alias = ?', [$id])
         ) {
             return $this->db->commit();
         }
@@ -565,7 +584,13 @@ class User extends \Tms\Common
                 return $this->db->commit();
             }
         }
-        trigger_error($this->db->error());
+        $error = $this->db->error();
+        if (preg_match("/Duplicate entry (.+) for key '(.+)'/", $error, $match)) {
+            $key = 'vl_' . $match[2];
+            $this->app->err[$key] = 301;
+        } else {
+            trigger_error($error);
+        }
         $this->db->rollback();
 
         return false;

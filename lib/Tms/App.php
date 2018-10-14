@@ -55,6 +55,7 @@ class App extends Base
 
         /* Auto Load */
         \P5\Auto\Loader::setNameSpace('Tms');
+        \P5\Auto\Loader::setIgnoreNameSpaceToPath(['plugin']);
         \P5\Auto\Loader::register();
 
         /* Reset Error Handler */

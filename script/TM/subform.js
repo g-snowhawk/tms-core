@@ -7,34 +7,71 @@
  * @author    PlusFive. 
  * @copyright (c)2018 PlusFive. (http://www.plus-5.com/)
  */
-
-/**
- * Subform
- */
 function Subform() {
     this.inited = false;
     this.sealedID = 'subform-sealed';
     this.cancelButtonID = 'cancel-subform-button';
     this.containerID = 'subform-container';
-    this.cnTransition = 'trans-left';
-    this.subformWidth = undefined;
+    this.position = 'left';
+    this.cnTransition = 'trans-' + this.position;
+    this.subFormSize = undefined;
     this.pollingTimer = undefined;
     this.startPollingDelay = 1000;
     this.pollingInterval = 10000;
     this.finally = undefined;
-    this.onLoad(this, 'init');
+    this.events = {
+        opened: [],
+        closed: [],
+        initedForm: []
+    };
+    TM.initModule(this.init, this, 'interactive');
 }
+
+Subform.prototype.addListener = function(eventType, func) {
+    if (this.events[eventType] === undefined) {
+        console.error('Invalid argument 1 is unknown event type');
+        return;
+    }
+    if (typeof(func) !== 'function') {
+        console.log(typeof(func));
+        console.error('Invalid argument 2 is not function');
+        return;
+    }
+    for (var i = 0; i < this.events[eventType].length; i++) {
+        if (this.events[eventType][i] === func) {
+            return i;
+        }
+    }
+    this.events[eventType].push(func);
+    return this.events[eventType].indexOf(func);
+};
 
 Subform.prototype.show = function(container) {
     var instance = TM.subform;
     container.addEventListener('transitionend', instance.listener, false);
     container.classList.add(instance.cnTransition);
-    container.style.left = '0';
+    container.style[instance.position] = '0';
 };
 
 Subform.prototype.endOpenTransition = function(container) {
     var instance = TM.subform;
-    if (container.offsetLeft < 0) {
+
+    var checkProperty = true;
+    switch (instance.position) {
+        case 'bottom':
+            checkProperty = (container.offsetTop >= window.innerHeight);
+            break;
+        case 'left':
+            checkProperty = (container.offsetLeft < 0);
+            break;
+        case 'right':
+            //checkProperty = (container.offsetLeft >= window.innerWidth);
+            checkProperty = (container.offsetLeft >= document.documentElement.clientWidth);
+            break;
+    }
+
+    var eventType;
+    if (checkProperty) {
         container.parentNode.removeChild(container);
         var sealed = document.getElementById(this.sealedID);
         sealed.parentNode.removeChild(sealed);
@@ -43,9 +80,15 @@ Subform.prototype.endOpenTransition = function(container) {
             TM.apply(instance.finally.function, instance.finally.arguments);
             instance.finally = undefined;
         }
+        eventType = 'closed';
     }
     else {
         instance.setListenerButtons();
+        eventType = 'opened';
+    }
+
+    for (var i = 0; i < instance.events[eventType].length; i++) {
+        instance.events[eventType][i].apply(instance, [{ type: eventType }]);
     }
 };
 
@@ -61,31 +104,85 @@ Subform.prototype.setListenerForms = function(container) {
     }
 };
 
+Subform.prototype.initForm = function(source) {
+    var container = document.getElementById(this.containerID);
+    if (container) {
+        container.innerHTML = source;
+        this.setListenerButtons();
+        this.setListenerForms(container);
+        this.subFormSize = (this.position !== 'bottom') ? container.offsetWidth : container.offsetHeight;
+        var eventType = 'initedForm';
+        for (var i = 0; i < this.events[eventType].length; i++) {
+            this.events[eventType][i].apply(this, [{ type: eventType }]);
+        }
+        return true;
+    }
+    return false;
+};
+
 Subform.prototype.create = function(json) {
-    var sealed = document.body.appendChild(document.createElement('div'));
+    var sealed = document.getElementById(this.sealedID);
+    if (this.initForm(json.response)) {
+        return;
+    }
+    /*
+    var container = document.getElementById(this.containerID);
+    if (container) {
+        container.innerHTML = json.response;
+        this.setListenerButtons();
+        this.setListenerForms(container);
+        this.subFormSize = (this.position !== 'bottom') ? container.offsetWidth : container.offsetHeight;
+        return;
+    }
+    */
+
+    sealed = document.body.appendChild(document.createElement('div'));
     sealed.id = this.sealedID;
 
     var container = document.body.appendChild(document.createElement('div'));
     container.id = this.containerID;
     container.innerHTML = json.response;
 
+    var form = container.querySelector('form');
+    if (form && form.dataset && form.dataset.position) {
+        this.position = form.dataset.position;
+        this.cnTransition = 'trans-' + this.position;
+    }
+    container.classList.add(this.position);
+
     this.setListenerForms(container);
 
-    this.width = container.offsetWidth;
+    this.subFormSize = (this.position !== 'bottom') ? container.offsetWidth : container.offsetHeight;
 
-    container.style.left = '-' + this.width + 'px';
+    container.style[this.position] = '-' + this.subFormSize + 'px';
     setTimeout(this.show, 0, container);
 };
 
 Subform.prototype.close = function(container) {
-    container.style.left = '-' + this.width + 'px';
+    container.style[this.position] = '-' + this.subFormSize + 'px';
     var sealed = document.getElementById(this.sealedID);
     sealed.classList.add('fadeout');
 };
 
 Subform.prototype.open = function(element) {
     var instance = TM.subform;
-    TM.xhr.init('GET', element.href, true, function(event){
+
+    var action = element.pathname;
+
+    var query = element.search.substr(1);
+    var queries = query.split('&');
+    var data = new FormData();
+    for (var i = 0; i < queries.length; i++) {
+        var pair = queries[i].split('=');
+        data.append(pair[0], pair[1]);
+    }
+
+    var stub = document.querySelector('[name=stub]');
+    data.append('stub', stub.value);
+    data.append('script_referer', location.href);
+    data.append('request_type', 'response-subform');
+
+    TM.xhr.init('POST', action, true, function(event){
         if(this.status == 200){
             try {
                 var json = JSON.parse(this.responseText);
@@ -98,9 +195,10 @@ Subform.prototype.open = function(element) {
         } else {
             // TODO: add error handling
             console.log(this.responseText);
+            alert('System Error!');
         }
     });
-    TM.xhr.send(null);
+    TM.xhr.send(data);
 };
 
 Subform.prototype.posted = function(json, form) {
@@ -121,33 +219,41 @@ Subform.prototype.posted = function(json, form) {
 
     var i, max;
     switch (json.response.type) {
-        case 'redirect':
-            location.href = json.response.source;
-            break;
         case 'callback':
             var args = json.arguments ? json.arguments : [];
             TM.apply(json.response.source, args);
             break;
+        case 'redirect':
+            location.href = json.response.source;
+            break;
+        case 'reload':
+            location.reload();
+            break;
         default:
-            var template = document.createElement('template');
-            if (template.content) {
-                template.innerHTML = json.response.source;
-                document.head.appendChild(template);
-                var nodeList = template.content.childNodes;
-                for (i = 0, max = nodeList.length; i < max; i++) {
-                    var element = nodeList[i];
-                    if (element.nodeType != Node.ELEMENT_NODE || !element.id) {
-                        continue;
+            if (json.response.source) {
+                var template = document.createElement('template');
+                if (template.content) {
+                    template.innerHTML = json.response.source;
+                    document.head.appendChild(template);
+                    var nodeList = template.content.childNodes;
+                    for (i = 0, max = nodeList.length; i < max; i++) {
+                        var element = nodeList[i];
+                        if (element.nodeType != Node.ELEMENT_NODE || !element.id) {
+                            continue;
+                        }
+                        var origin = document.getElementById(element.id);
+                        if (origin) {
+                            origin.parentNode.replaceChild(element.cloneNode(true), origin);
+                        }
                     }
-                    var origin = document.getElementById(element.id);
-                    if (origin) {
-                        origin.parentNode.replaceChild(element.cloneNode(true), origin);
-                    }
-                }
-                document.head.removeChild(template);
+                    document.head.removeChild(template);
 
-                this.setListenerForms(document.getElementById(this.containerID));
-                this.setListenerButtons();
+                    this.setListenerForms(document.getElementById(this.containerID));
+                    this.setListenerButtons();
+                }
+            }
+            else {
+                this.initForm(json.response);
             }
             break;
     }
@@ -163,6 +269,12 @@ Subform.prototype.posted = function(json, form) {
 };
 
 Subform.prototype.submit = function(form) {
+    if (form.dataset && form.dataset.confirm) {
+        if (!confirm(form.dataset.confirm)) {
+            return;
+        }
+    }
+
     if (form.normal_request && form.normal_request.value === '1') {
         form.submit();
         return;
@@ -182,6 +294,7 @@ Subform.prototype.submit = function(form) {
         } else {
             // TODO: add error handling
             console.log(this.responseText);
+            alert('System Error!');
         }
     });
 
@@ -271,6 +384,7 @@ Subform.prototype.polling = function(url) {
         } else {
             // TODO: add error handling
             console.log(this.responseText);
+            alert('System Error!');
         }
     });
     xhr.send(null);
@@ -320,18 +434,4 @@ Subform.prototype.init = function(event) {
     this.inited = true;
 };
 
-Subform.prototype.onLoad = function(scope, func) {
-    window.addEventListener(
-        'DOMContentLoaded',
-        function(event) {
-            scope[func](event);
-        },
-        false
-    );
-};
-
-/**
- * Create instance
- */
-window.TM = window.TM || new TM_Common();
 TM.subform = new Subform();

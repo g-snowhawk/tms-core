@@ -1,7 +1,7 @@
 {% extends "master.tpl" %}
 
 {% block head %}
-  <script src="script/fix_thead_vertical_scroll.js"></script>
+  <script src="{{ config.global.assets_path }}script/fix_thead_vertical_scroll.js"></script>
 {% endblock %}
 
 {% block main %}
@@ -12,10 +12,13 @@
       <thead>
         <tr>
           <td>フルネーム</td>
+          <td>所属</td>
           <td>E-mail</td>
           <td>登録日</td>
           <td>更新日</td>
-          <td>&nbsp;</td>
+          {% if apps.isRoot %}
+            <td>&nbsp;</td>
+          {% endif %}
           <td>&nbsp;</td>
           <td>&nbsp;</td>
         </tr>
@@ -24,13 +27,12 @@
         {% for unit in users %}
           <tr>
             <td>{{ unit.fullname }}</td>
+            <td>{{ unit.company }}</td>
             <td class="spacer">{{ unit.email }}</td>
             <td class="date">{{ unit.create_date|date('Y年n月j日 H:i') }}</td>
             <td class="date">{{ unit.modify_date|date('Y年n月j日 H:i') }}</td>
-            {% if apps.hasPermission('system') %}
+            {% if apps.isRoot %}
               <td class="button"><a href="?mode=user.response:switchUser&id={{ unit.id|url_encode }}">切替</a></td>
-            {% else %}
-              <td class="button">&nbsp;</td>
             {% endif %}
             {% if apps.hasPermission('user.update') %}
               <td class="button"><a href="?mode=user.response:edit&id={{ unit.id|url_encode }}">編集</a></td>

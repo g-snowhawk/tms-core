@@ -18,7 +18,7 @@ function CustomSelector() {
     this.cnSelectMenu = 'select-menu';
     this.cnOpen = 'select-open';
     this.cnPulldown = 'pulldown';
-    this.onLoad(this, 'init');
+    TM.initModule(this.init, this);
 }
 
 CustomSelector.prototype.selected = function(element, textOnly) {
@@ -93,18 +93,4 @@ CustomSelector.prototype.init = function(event) {
     this.inited = true;
 };
 
-CustomSelector.prototype.onLoad = function(scope, func) {
-    window.addEventListener(
-        'DOMContentLoaded',
-        function(event) {
-            scope[func](event);
-        },
-        false
-    );
-};
-
-/**
- * Create instance
- */
-window.TM = window.TM || new TM_Common();
 TM.customSelector = new CustomSelector();

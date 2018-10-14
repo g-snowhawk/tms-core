@@ -1,8 +1,7 @@
 {% extends "master.tpl" %}
 
 {% block head %}
-  <script src="script/subform.js"></script>
-  <script src="script/user_alias.js"></script>
+  <script src="{{ config.global.assets_path }}script/user_alias.js"></script>
 {% endblock %}
 
 {% block main %}
@@ -96,7 +95,7 @@
       </div>
     {% endif %}
 
-    <script src="script/tms_user.js" charset="utf-8"></script>
+    <script src="{{ config.global.assets_path }}script/tms_user.js" charset="utf-8"></script>
     <h2><a href="#update-password" class="accordion-switcher" data-callback="erasePassword">パスワード{% if post.id is empty %}設定{% else %}変更{% endif %}</a></h2>
     <div id="update-password" class="accordion{% if err.vl_upass == 1 %} opened{% endif %}">
       {% if err.vl_upass == 1 %}
@@ -124,10 +123,8 @@
       {% include 'user/alias_list.tpl' %}
     {% endif %}
 
-    <div class="metadata">
-      登録日：{{ post.create_date|date('Y年n月j日 H:i') }}<input type="hidden" name="create_date" value="{{ post.create_date }}"><br>
-      更新日：{{ post.modify_date|date('Y年n月j日 H:i') }}<input type="hidden" name="modify_date" value="{{ post.modify_date }}"><br>
-    </div>
+    {% include 'edit_form_metadata.tpl' %}
+
     <div class="form-footer">
       <input type="submit" name="s1_submit" value="登録">
       <input type="hidden" name="mode" value="user.receive:save">

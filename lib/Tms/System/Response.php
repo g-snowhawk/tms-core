@@ -141,7 +141,18 @@ class Response extends \Tms\System
                 include_once($classfile);
                 $class = strtr($name, '/', '\\');
                 $class = str_replace(self::CLASS_PATH, self::CLASS_NAME, $class);
+
+                if (!class_exists($class)) {
+                    list($className, $prefix) = \Tms\Base::findClass($class);
+                    if (!empty($className)) {
+                        $class = "\\$prefix$class";
+                    }
+                }
+
                 $namespace = $class::getNameSpace();
+                if (isset($prefix)) {
+                    $namespace = preg_replace('/^'.preg_quote($prefix,'/').'\\\/','',$namespace);
+                }
 
                 $unit = [
                     'namespace' => $namespace,
@@ -149,8 +160,8 @@ class Response extends \Tms\System
                     'detail' => $class::getDescription(),
                 ];
 
-                if ($this->getPackageMd5($namespace) !== md5_file($classfile)
-                 && version_compare($class::VERSION, $unit['current_version'], '>')
+                if (   $this->getPluginMd5($namespace) !== md5_file($classfile)
+                    && version_compare($class::VERSION, $unit['current_version'], '>')
                 ) {
                     $unit['path'] = $classfile;
                     $unit['new_version'] = $class::VERSION;
@@ -177,12 +188,30 @@ class Response extends \Tms\System
     {
         $template = 'system/log.tpl';
 
-        $log_file = ERROR_LOG_DESTINATION;
-        $this->view->addPath(dirname($log_file));
-        $this->view->bind('errorlog', basename($log_file));
-        $this->view->bind('accesslog', basename('access.log'));
-
         $this->setHtmlId('system-log');
         $this->view->render($template);
+    }
+
+    public function errorLog()
+    {
+        self::echoLog(ERROR_LOG_DESTINATION);
+    }
+
+    public function accessLog()
+    {
+        self::echoLog(dirname(ERROR_LOG_DESTINATION).'/access.log');
+    }
+
+    private static function echoLog($logfile)
+    {
+        \P5\Http::nocache();
+        \P5\Http::responseHeader('Content-type', 'text/plain', 'charset=utf-8');
+        if (file_exists($logfile) && filesize($logfile) > 0) {
+            readfile($logfile);
+        }
+        else {
+            echo 'No log...';
+        }
+        exit;
     }
 }

@@ -103,6 +103,9 @@ class Validator
                 }
 
                 $error_key = preg_replace('/\.[0-9]+$/', '', $key);
+                if (!empty($this->_errors[$error_key])) {
+                    continue;
+                }
                 $this->_errors[$error_key] = ($this->check($key, $value)) ? 0 : $this->_checker[$key]['errnum'];
                 if ($this->_errors[$error_key] > 0) {
                     $duplicate[$s] = 1;
@@ -125,8 +128,35 @@ class Validator
     {
         $result = false;
         $type = $this->_checker[$key]['type'];
+        $args = $this->_checker[$key]['args'];
 
         switch ($type) {
+            case 'date_format':
+                if (preg_match('/^(([0-9]{2})?([0-9]{2}))[\/\-\.]([0-9]{1,2})[\/\-\.]([0-9]{1,2})$/', $value, $match)) {
+                    $year = $match[1];
+                    $month = $match[4];
+                    $day = $match[5];
+                    $result = checkdate($month, $day, $year);
+                }
+                break;
+            case 'datetime_format':
+                if (preg_match('/^(([0-9]{2})?([0-9]{2}))[\/\-\.]([0-9]{1,2})[\/\-\.]([0-9]{1,2})[ T]([0-9]{1,2}):([0-9]{1,2})(:([0-9]{1,2}))?$/', $value, $match)) {
+                    $year = $match[1];
+                    $month = $match[4];
+                    $day = $match[5];
+                    if (checkdate($month, $day, $year)) {
+                        $hour = intval($match[6]);
+                        $minute = intval($match[7]);
+                        $second = (isset($match[9])) ? intval($match[9]) : 0;
+                        if (   $hour >= 0 && $hour < 60
+                            && $minute >= 0 && $minute < 60
+                            && $second >= 0 && $second < 60
+                        ) {
+                            $result = true;
+                        }
+                    }
+                }
+                break;
             case 'digit':
                 $result = ctype_digit($value);
                 break;
@@ -155,11 +185,17 @@ class Validator
                     $result = (string)$float === $value;
                 }
                 break;
+            case 'gt_datetime':
+                $result = strtotime($value) > strtotime($args[0]);
+                break;
             case 'int':
                 if (is_numeric($value)) {
                     $int = (int)$value;
                     $result = (string)$int === $value;
                 }
+                break;
+            case 'lt_datetime':
+                $result = strtotime($value) < strtotime($args[0]);
                 break;
             case 'mail':
                 return (bool) filter_var($value, FILTER_VALIDATE_EMAIL);
@@ -170,11 +206,23 @@ class Validator
                 }
                 break;
             case 'range':
-                $args = $this->_checker[$key]['args'];
                 $result = ((float)$value >= (float)$args[0] && (float)$value <= (float)$args[1]);
                 break;
             case 'retype':
                 $result = ($value[0] === $value[1]);
+                break;
+            case 'time_format':
+                if (preg_match('/^([0-9]{1,2}):([0-9]{1,2})(:([0-9]{1,2}))?$/', $value, $match)) {
+                    $hour = intval($match[1]);
+                    $minute = intval($match[2]);
+                    $second = (isset($match[4])) ? intval($match[4]) : 0;
+                    if (   $hour >= 0 && $hour < 60
+                        && $minute >= 0 && $minute < 60
+                        && $second >= 0 && $second < 60
+                    ) {
+                        $result = true;
+                    }
+                }
                 break;
             case 'upload':
                 $result = true;
@@ -185,6 +233,20 @@ class Validator
                     if (is_array($this->_checker[$key]['args'])) {
                         $ext = pathinfo($value['name'], PATHINFO_EXTENSION);
                         $result = in_array(strtolower(".$ext"), array_map('strtolower', $this->_checker[$key]['args']));
+                    }
+                }
+                break;
+            case 'upload_graceful':
+                $result = true;
+                if ($value['error'] !== 4) {
+                    if ($value['error'] > 0) {
+                        $result = false;
+                        $this->_checker[$key]['errnum'] = $value['error'];
+                    } else {
+                        if (is_array($this->_checker[$key]['args'])) {
+                            $ext = pathinfo($value['name'], PATHINFO_EXTENSION);
+                            $result = in_array(strtolower(".$ext"), array_map('strtolower', $this->_checker[$key]['args']));
+                        }
                     }
                 }
                 break;
@@ -203,6 +265,10 @@ class Validator
                 break;
             default:
                 $result = !empty($value);
+        }
+
+        if ($result === false && in_array('allowempty', (array)$this->_checker[$key]['args'])) {
+            $result = empty($value);
         }
 
         return $result;

@@ -27,6 +27,12 @@ main {
 template {
   display: none;
 }
+label {
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 ::-webkit-input-placeholder { color: #abc; }
 ::-moz-input-placeholder { color: #abc; }
@@ -44,6 +50,7 @@ template {
 /**
  * Button style
  */
+a.button,
 button,
 input[type="button"],
 input[type="submit"] {
@@ -54,13 +61,20 @@ input[type="submit"] {
   border: 1px solid #999;
   border-radius: 4px;
   box-sizing: border-box;
+  color: inherit;
+  display: inline-block;
+  font-family: system-ui;
   font-size: .9rem;
   line-height: 28px;
   margin: 0;
   min-width: 120px;
   padding: 0px 12px;
+  text-decoration: none;
   transition: background-color .5s ease;
+  vertical-align: top;
 }
+a.button:focus,
+a.button:hover,
 button:focus,
 button:hover,
 input[type="button"]:focus,
@@ -71,6 +85,7 @@ input[type="submit"]:hover {
   border-color: #69c;
   color: #fff;
 }
+a.button:disabled,
 button:disabled,
 input[type="button"]:disabled,
 input[type="submit"]:disabled {
@@ -85,7 +100,7 @@ input[type="submit"]:disabled {
 select,
 textarea,
 input.sametext,
-input[type="datetime"],
+input[type="datetime-local"],
 input[type="date"],
 input[type="time"],
 input[type="password"],
@@ -102,7 +117,7 @@ input[type="text"] {
   vertical-align: top;
 }
 input.sametext,
-input[type="datetime"],
+input[type="datetime-local"],
 input[type="date"],
 input[type="time"],
 input[type="password"],
@@ -110,7 +125,7 @@ input[type="text"] {
   line-height: 1;
 }
 input.sametext:focus,
-input[type="datetime"],
+input[type="datetime-local"],
 input[type="date"],
 input[type="time"],
 input[type="password"]:focus,
@@ -121,6 +136,9 @@ input.sourcecode, textarea.sourcecode {
   font-family: 'Courier New', Courier, monospace;
   font-size: .75rem;
   height: 480px;
+}
+textarea[name=content] {
+  height: 300px;
 }
 
 /**
@@ -173,6 +191,7 @@ a.small-button:hover {
   border-top-color: rgba(0,0,0,.8);
   content: "";
   left: 1rem;
+  pointer-events: none;
   position: absolute;
   top: 0;
 }
@@ -186,6 +205,7 @@ a.small-button:hover {
   font-size: .7rem;
   left: .3rem;
   padding: .5rem;
+  pointer-events: none;
   position: absolute;
 }
 *[data-tips]:after ,
@@ -329,6 +349,31 @@ a.small-button:hover {
   padding: 0 16px;
   text-align: left;
 }
+.explorer-list .headline .breadcrumbs {
+  display: inline-flex;
+  font-size: .8rem;
+  line-height: 1;
+  margin-left: 1em;
+}
+.explorer-list .headline .breadcrumbs:before {
+  content: '(';
+  margin: auto .5em auto auto;
+}
+.explorer-list .headline .breadcrumbs:after {
+  content: ')';
+  margin: auto auto auto .5em;
+}
+.explorer-list .headline .breadcrumbs a {
+  color: #fff;
+  text-decoration: none;
+}
+.explorer-list .headline .breadcrumbs a:last-child {
+  color: #000;
+}
+.explorer-list .headline .breadcrumbs a:not(:last-child):after {
+  content: '/';
+  margin: auto .25em;
+}
 .explorer-list .footer-controls {
   align-items: center;
   background: #678;
@@ -357,13 +402,39 @@ a.small-button:hover {
 .explorer-list .footer-controls a:hover {
   background: rgba(255,255,255,.2);
 }
-.explorer-list .footer-controls a i {
+.explorer-list .footer-controls a i,
+.explorer-list .footer-controls a mark {
+  background: transparent;
+  color: #fff;
   font-family: Arial, sans-serif;
   font-style: normal;
   margin-right: .25em;
 }
-.explorer-list .footer-controls a:hover i {
+.explorer-list .footer-controls a:hover i,
+.explorer-list .footer-controls a:hover mark {
   color: #6ff;
+}
+.explorer-list .footer-controls a mark.icon {
+  background: transparent none no-repeat 50% 50%;
+  background-size: 12px 12px;
+  color: transparent;
+  display: inline-block;
+  height: 12px;
+  margin-right: .15em;
+  width: 12px;
+  vertical-align: middle;
+}
+.explorer-list .footer-controls a mark.search {
+  background-image: url(icon_search.svg);
+}
+.explorer-list .footer-controls a:hover mark.search {
+  background-image: url(icon_search_hover.svg);
+}
+.explorer-list .footer-controls a mark.download {
+  background-image: url(icon_download.svg);
+}
+.explorer-list .footer-controls a:hover mark.download {
+  background-image: url(icon_download_hover.svg);
 }
 .explorer-list .footer-controls .pagination .pager a:focus,
 .explorer-list .footer-controls .pagination .pager a:hover {
@@ -383,6 +454,11 @@ a.small-button:hover {
 .explorer-list .footer-controls .pagination .pager .next:after {
   content: '>';
   margin-left: 4px;
+}
+.explorer-list div.explorer-body {
+  flex-grow: 1;
+  height: 10%;
+  overflow: auto;
 }
 .explorer-list table {
   border-collapse: collapse;
@@ -484,13 +560,19 @@ a.small-button:hover {
 .explorer-list table tbody tr.draft td:first-child a {
   background-image: url(icon_draft.svg);
 }
-.explorer-list table tbody tr.draft:first-child *[data-tips]:before {
+.explorer-list table tbody tr.release td:first-child a {
+  background-image: url(icon_world.svg);
+}
+.explorer-list table tbody tr.private td:first-child a {
+  background-image: url(icon_stop.svg);
+}
+.explorer-list table tbody tr:first-child *[data-tips]:before {
   bottom: 0;
   border-top-color: rgba(0,0,0,0);
   border-bottom-color: rgba(0,0,0,.8);
   top: auto;
 }
-.explorer-list table tbody tr.draft:first-child *[data-tips]:after {
+.explorer-list table tbody tr:first-child *[data-tips]:after {
   bottom: auto;
   top: 100%;
   z-index: 101;
@@ -602,6 +684,9 @@ a.small-button:hover {
   position: absolute;
   top: 25px;
 }
+#global-nav li ul.open {
+  display: block;
+}
 #global-nav li ul ul {
   border-top: 1px solid #ccc;
   left: 200px;
@@ -646,6 +731,7 @@ a.small-button:hover {
   display: flex;
   flex-wrap: nowrap;
   margin: 12px auto;
+  position: relative;
 }
 .fieldset div.legend,
 .fieldset label {
@@ -708,7 +794,7 @@ a.small-button:hover {
 .fieldset div.input,
 .fieldset fieldset,
 .fieldset input.sametext,
-.fieldset input[type="datetime"],
+.fieldset input[type="datetime-local"],
 .fieldset input[type="date"],
 .fieldset input[type="time"],
 .fieldset input[type="password"],
@@ -736,6 +822,37 @@ a.small-button:hover {
 .fieldset input.short {
   min-width: 3rem;
   width: 15%;
+}
+.fieldset .inner-flex {
+  border: 1px solid #ccc;
+  border-bottom-right-radius: 4px;
+  border-left: 0 none transparent;
+  border-top-right-radius: 4px;
+  flex-grow: 1;
+  display: flex;
+  position: relative;
+}
+.fieldset .inner-flex input {
+  border: 0 none transparent;
+  border-radius: 0;
+}
+.fieldset .inner-flex button {
+  background: transparent;
+  border: 0 none transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 4px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 4px;
+  min-width: auto;
+  width: 28px;
+}
+.fieldset .inner-flex button:hover {
+  color: inherit;
+}
+.fieldset .inner-flex button.dummy-pulldown {
+  background: #fff url(pulldown.svg) no-repeat 100% 50%;
+  background-size: 28px 20px;
+  font-size: 0;
 }
 .fieldset div.extension {
   align-items: center;
@@ -810,6 +927,7 @@ a.small-button:hover {
   top: 100%;
   display: none;
   width: 100%;
+  z-index: 102;
 }
 .fieldset .select-box .select-menu.select-open {
   display: block;
@@ -828,6 +946,10 @@ a.small-button:hover {
 .fieldset .select-box .select-menu input + span {
   visibility: hidden;
 }
+.fieldset .select-box .select-menu li .optgroup {
+  color: #bbb;
+  margin-left: 1.5em;
+}
 .fieldset .select-box .select-menu label {
   border-radius: 0;
   display: block;
@@ -843,25 +965,84 @@ a.small-button:hover {
   visibility: visible;
 }
 
+.multi-selector {
+  display: inline-flex;
+  vertical-align: top;
+}
+.multi-selector + span {
+  display: block;
+  margin-top: .4em;
+}
+.multi-selector label {
+  max-width: auto;
+  min-width: auto;
+  margin: 0 -1px 0 0 !important;
+  padding: 0;
+}
+.multi-selector label span {
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  border: 1px solid #ccc;
+  border-radius: 0;
+  cursor: pointer;
+  display: inline-block;
+  font-family: system-ui;
+  font-size: .8rem;
+  line-height: 1.8em;
+  text-align: center;
+  user-select: none;
+  width: 1.8em;
+}
+.multi-selector.warn label span {
+  border: 1px solid #f99;
+}
+.multi-selector label span:hover {
+  background: linear-gradient(to bottom, #9cf, #fff);
+}
+.multi-selector input {
+  display: none;
+}
+.multi-selector label.assumed-on span,
+.multi-selector input:checked + span {
+  background: #9cf;
+  color: #fff;
+}
+.multi-selector label.assumed-off span {
+  background: transparent;
+  color: #000;
+}
 
-input.datetime {
-  border: 1px solid #ccc !important;
-  border-radius: 0 !important;
+
+
+div.input input[type="datetime-local"],
+div.input input[type="date"],
+div.input input[type="time"],
+div.input input[type="password"],
+div.input input[type="text"] {
+  border: 1px solid #ccc;
+  border-radius: 0;
+  width: auto;
+}
+div.input.flex input.grow-1 {
+  flex-grow: 1;
+}
+.fieldset input.datetime {
   font-family: Verdana, sans-serif;
-  font-size: .7rem !important;
-  font-style: italic;
+  font-size: .7rem;
+  font-style: normal;
   padding: 4px;
   text-align: center;
-  width: auto !important;
 }
-input.time {
-  width: 5em !important;
+.fieldset input.time {
+  width: 8em !important;
 }
 
 
+.active > .inner-flex,
 .active > div.input,
 .active > input.sametext,
-.active > input[type="datetime"],
+.active > input[type="datetime-local"],
 .active > input[type="date"],
 .active > input[type="time"],
 .active > input[type="text"],
@@ -873,9 +1054,10 @@ input.time {
   border-color: #999;
 }
 /* form input error style */
+.invalid > .inner-flex,
 .invalid > div.input,
 .invalid > input.sametext,
-.invalid > input[type="datetime"],
+.invalid > input[type="datetime-local"],
 .invalid > input[type="date"],
 .invalid > input[type="time"],
 .invalid > input[type="text"],
@@ -885,6 +1067,14 @@ input.time {
 .invalid > fieldset,
 .invalid > label {
   border-color: #f99;
+}
+.invalid textarea.warn,
+.invalid input[type="datetime-local"].warn,
+.invalid input[type="date"].warn,
+.invalid input[type="time"].warn,
+.invalid input[type="password"].warn,
+.invalid input[type="text"].warn {
+  border: 1px solid #f99;
 }
 .error {
   margin: 12px auto -12px;
@@ -970,11 +1160,24 @@ input.time {
   overflow: hidden;
   transition: height .5s ease;
 }
+*.accordion-closed {
+  height: 0;
+}
 
 .metadata {
   color: #999;
   font-size: .7rem;
   margin: 24px 4px 0;
+}
+.metadata .justify {
+  display: inline-block;
+}
+.metadata .justify:first-letter {
+  margin-right: .7rem;
+}
+.metadata input[name=author_date] {
+  font-size: .7rem;
+  padding: 4px;
 }
 
 /**
@@ -1066,6 +1269,7 @@ section.relational-list p {
   padding: .5em 1em;
   text-decoration: none;
   transition: background-color .8s ease, padding .5s ease-out;
+  user-select: none;
 }
 .function-key a:hover {
   background-color: rgba(0,0,0,.25);
@@ -1420,14 +1624,14 @@ div.alert section h2 {
   font-size: .8rem;
   font-weight: 200;
 }
-#system-log div.log-block {
+#system-log .log-block {
   border: 1px solid #999;
   box-sizing: border-box;
   font-family: 'Courier New', monospace;
-  font-size: .7rem;
+  font-size: .75rem;
   height: 300px;
   overflow: auto;
-  white-space: nowrap;
+  white-space: pre;
   width: 100%;
 }
 
@@ -1464,11 +1668,28 @@ div.alert section h2 {
   left: 0;
   overflow: auto;
   position: fixed;
+  right: 0;
   top: 25px;
   z-index: 91;
 }
+#subform-container.left {
+  right: auto;
+}
 #subform-container.trans-left {
   transition: left .5s ease;
+}
+#subform-container.right {
+  left: auto;
+}
+#subform-container.trans-right {
+  transition: right .5s ease;
+}
+#subform-container.bottom {
+  flex-direction: column-reverse;
+  top: auto;
+}
+#subform-container.trans-bottom {
+  transition: bottom .5s ease;
 }
 #subform-container #cancel-subform a {
   color: #36c;
@@ -1477,17 +1698,44 @@ div.alert section h2 {
   padding: 8px 12px;
   text-decoration: none;
 }
+#subform-container.bottom #cancel-subform {
+  text-align: right;
+}
 #subform-container form {
   box-sizing: border-box;
   flex-grow: 1;
   height: 10%;
   margin: 0;
-  width: 320px;
+  overflow: auto;
   padding: 24px 12px 16px;
+  width: 320px;
+}
+#subform-container.bottom form {
+  width: auto;
 }
 #subform-container form.assist {
   flex-grow: 0;
   height: auto;
+}
+#subform-container form .wrapper {
+  padding: 0 .5em;
+}
+#subform-container.bottom form {
+  padding-top: 0;
+}
+#subform-container.bottom form .wrapper {
+  margin-left: 0;
+}
+#subform-container.bottom form .wrapper > .flex {
+  display: flex;
+}
+#subform-container.bottom form .wrapper > .flex > *.column {
+  margin-right: 1.5rem;
+  width: 320px;
+}
+#subform-container.bottom form .wrapper .form-footer {
+  margin: 1rem 0 0;
+  text-align: left;
 }
 #subform-container form h1 {
   font-size: 1.4rem;
@@ -1513,9 +1761,12 @@ div.alert section h2 {
 #subform-container .fieldset label:after {
   content: '';
 }
+#subform-container .fieldset textarea {
+  height: 8em;
+}
 #subform-container .fieldset div.input,
 #subform-container .fieldset input.sametext,
-#subform-container .fieldset input[type="datetime"],
+#subform-container .fieldset input[type="datetime-local"],
 #subform-container .fieldset input[type="date"],
 #subform-container .fieldset input[type="time"],
 #subform-container .fieldset input[type="password"],
@@ -1527,7 +1778,7 @@ div.alert section h2 {
 }
 /* subform input error style */
 #subform-container .invalid input.sametext,
-#subform-container .invalid input[type="datetime"],
+#subform-container .invalid input[type="datetime-local"],
 #subform-container .invalid input[type="date"],
 #subform-container .invalid input[type="time"],
 #subform-container .invalid input[type="password"],
@@ -1536,6 +1787,9 @@ div.alert section h2 {
 #subform-container .invalid textarea,
 #subform-container .invalid label {
   border-color: #f99;
+}
+#subform-container .fieldset input.datetime {
+  padding: .77em 4px;
 }
 #subform-container .fieldset div.extension {
   display: block;
@@ -1548,6 +1802,33 @@ div.alert section h2 {
   color: #369;
   font-size: .8rem;
   font-weight: 200;
+}
+#subform-container .fieldset .input {
+  border: 0 none transparent !important;
+  padding: 0;
+}
+#subform-container .fieldset .input.flex {
+  align-items: center;
+  display: flex;
+}
+#subform-container .fieldset .input.flex em {
+  font-size: .8rem;
+  font-style: normal;
+  font-weight: 300;
+  margin: auto .25em;
+}
+#subform-container .fieldset .input.group {
+  background: #fff;
+  border: 1px solid #ccc !important;
+  padding: .5em;
+}
+#subform-container .fieldset .input.group label {
+  display: initial;
+}
+#subform-container .fieldset select.normal{
+  border: 1px solid #ccc;
+  font-size: .9rem;
+  padding: 6px 28px 6px 4px;
 }
 /* end of Subform stsyles */
 
