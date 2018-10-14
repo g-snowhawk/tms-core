@@ -1,7 +1,10 @@
 {% extends "master.tpl" %}
 
+{% block head %}
+  <script src="{{ config.global.assets_path }}script/TM/downloader.js"></script>
+{% endblock %}
+
 {% block main %}
-<script src="script/downloader.js"></script>
   <div class="wrapper">
     <h1>拡張機能管理</h1>
     <p>{{ mtime|date('Y年n月j日 H:i') }} に更新された設定ファイルが存在します。<br>

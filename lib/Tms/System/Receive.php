@@ -105,7 +105,7 @@ class Receive extends Response
                     continue;
                 }
                 if (false !== $instance->update($configuration, $current_version)) {
-                    $this->setChecksum([$namespace, $class::VERSION, $checksum]);
+                    $this->setChecksumPlugins([$namespace, $class::VERSION, $checksum]);
                 }
             }
         }

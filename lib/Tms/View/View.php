@@ -194,7 +194,7 @@ class View implements View_Interface
      */
     public function getPaths()
     {
-        if (get_class($this->loader) === 'Twig_Loader_Filesystem') {
+        if (!is_null($this->loader) && get_class($this->loader) === 'Twig_Loader_Filesystem') {
             return $this->engine->getLoader()->getPaths();
         }
     }
@@ -228,7 +228,7 @@ class View implements View_Interface
             }
         }
         $this->template_dir = $paths;
-        if (get_class($this->loader) === 'Twig_Loader_Filesystem') {
+        if (!is_null($this->loader) && get_class($this->loader) === 'Twig_Loader_Filesystem') {
             $this->loader->setPaths($this->template_dir);
         }
     }
@@ -240,7 +240,7 @@ class View implements View_Interface
      */
     public function addPath($path)
     {
-        if (get_class($this->loader) === 'Twig_Loader_Filesystem') {
+        if (!is_null($this->loader) && get_class($this->loader) === 'Twig_Loader_Filesystem') {
             $this->engine->getLoader()->addPath($path);
         }
     }
@@ -252,7 +252,7 @@ class View implements View_Interface
      */
     public function prependPath($path)
     {
-        if (get_class($this->loader) === 'Twig_Loader_Filesystem') {
+        if (!is_null($this->loader) && get_class($this->loader) === 'Twig_Loader_Filesystem') {
             $this->engine->getLoader()->prependPath($path);
         }
     }

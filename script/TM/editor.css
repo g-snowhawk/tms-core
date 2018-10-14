@@ -75,7 +75,7 @@
 }
 .image-set span.selected,
 .image-set label {
-  background: transparent url(plus.svg) no-repeat 50% 50%;
+  background: transparent url(editor/plus.svg) no-repeat 50% 50%;
   background-size: 48px 48px;
   border: 1px dashed #ccc;
   display: inline-block;
@@ -95,7 +95,7 @@
   height: 100px;
 }
 .image-set a {
-  background: transparent url(icon_delete.svg) no-repeat 50% 50%;
+  background: transparent url(editor/icon_delete.svg) no-repeat 50% 50%;
   display: inline-block;
   height: 24px;
   left: 0;
@@ -112,7 +112,7 @@
   opacity: 1;
 }
 .image-set span.selected .checked {
-  background: transparent url(icon_check_mark.svg) no-repeat 50% 50%;
+  background: transparent url(editor/icon_check_mark.svg) no-repeat 50% 50%;
   bottom: 0;
   display: inline-block;
   height: 24px;
@@ -126,7 +126,7 @@
   width: 24px;
 }
 .image-set span.editor-image-active .checked {
-  background-image: url(icon_check.svg);
+  background-image: url(editor/icon_check.svg);
 }
 .image-set span.editor-image-active .checked,
 .image-set span.selected:hover .checked {

@@ -358,6 +358,22 @@ abstract class Base
         );
     }
 
+    protected static function lowerCamelCase($str)
+    {
+        return preg_replace_callback(
+            '/[-_]([a-z])/',
+            function($matches) {
+                return strtoupper($matches[1]);
+            },
+            strtolower($str)
+        );
+    }
+
+    protected static function upperCamelCase($str)
+    {
+        return ucfirst(self::lowerCamelCase($str));
+    }
+
     /**
      * Create instance.
      *
@@ -367,44 +383,88 @@ abstract class Base
      */
     public function instance($mode = null)
     {
-        if (preg_match('/^([0-9a-z]+)~.+$/', $mode, $match)) {
-            $this->root = ucfirst(strtolower($match[1]));
-            $mode = preg_replace('/^[0-9a-z]+~/', '', $mode);
+        $unit = self::parseMode($mode);
+        if (!empty($unit['namespace']) && !in_array($unit['namespace'], $this->cnf('plugins:paths'))) {
+            throw new \ErrorException("{$unit['namespace']} is not enabled");
         }
-        $dirs = [$this->root];
-        $args = null;
-        if (strpos($mode, ':') !== false) {
-            list($m, $func) = explode(':', $mode);
-            if (preg_match('/(.+)\((.*)\)/', $func, $match)) {
-                $func = $match[1];
-                $args = \P5\Text::explode(',', $match[2]);
-            }
-        } else {
-            $m = $mode;
-            $func = null;
+        if (empty($unit['namespace'])) {
+            $unit['namespace'] = $this->root;
         }
-        $m = explode('.', $m);
-        $dirs = array_merge($dirs, $m);
-        $uc = function ($str) {
-            return ucfirst(strtolower($str));
-        };
-        $package = implode('\\', array_map($uc, $dirs));
+
+        list($namespace, $prefix) = self::findClass('\\'.$unit['namespace']);
+        if (!empty($prefix)) {
+            $unit['namespace'] = "$prefix$namespace";
+        }
+
+        $package = $unit['namespace'] . '\\' . $unit['package'];
         if (false === \P5\Auto\Loader::isIncludable($package)) {
             trigger_error("System Error: Class `$package' is not found...", E_USER_ERROR);
         }
-        if (false === is_subclass_of($package, 'Tms\\PackageInterface')
-         && false === is_a($package, 'Tms\\User\\Response', true)
-         && false === is_a($package, 'Tms\\System\\Response', true)
-         && false === is_a($package, 'Tms\\Plugin', true)
+        if (   false === is_subclass_of($package, 'Tms\\PackageInterface')
+            && false === is_a($package, 'Tms\\User\\Response', true)
+            && false === is_a($package, 'Tms\\System\\Response', true)
+            && false === is_a($package, 'Tms\\Plugin', true)
         ) {
             trigger_error("System Error: Class `$package' is an invalid package.", E_USER_WARNING);
         }
         $instance = new $package($this);
-        if (empty($func) && method_exists($instance, self::DEFAULT_METHOD)) {
-            $func = self::DEFAULT_METHOD;
+        if (empty($unit['function']) && method_exists($instance, self::DEFAULT_METHOD)) {
+            $unit['function'] = self::DEFAULT_METHOD;
         }
 
-        return array($instance, $func, $args);
+        return array($instance, $unit['function'], $unit['arguments']);
+    }
+
+    /*
+     * Parse mode
+     *
+     * @param string $mode
+     *
+     * @return array
+     */
+    public static function parseMode($mode)
+    {
+        $namespace = null;
+        $package = $mode;
+        $function = self::DEFAULT_METHOD;
+        $arguments = null;
+        if (preg_match("/^((.+)~)?(.+?)(:+(.+))?$/", $mode, $match)) {
+
+            $namespace = self::upperCamelCase($match[2]);
+            $package = $match[3];
+
+            if (isset($match[5])) {
+                $function = $match[5];
+                if (preg_match('/(.+)\((.*)\)/', $function, $pair)) {
+                    $function = $pair[1];
+                    $arguments = \P5\Text::explode(',', $pair[2]);
+                }
+            }
+
+            $mode = [
+                'namespace' => $namespace,
+                'package' => $package,
+                'function' => self::lowerCamelCase($function),
+                'arguments' => $arguments,
+            ];
+        } else {
+            $mode = [
+                'namespace' => $namespace,
+                'package' => $package,
+                'function' => $function,
+                'arguments' => $arguments,
+            ];
+        }
+
+        $dirs = array_map(
+            function($str) {
+                return self::upperCamelCase($str);
+            },
+            explode('.', $mode['package'])
+        );
+        $mode['package'] = implode('\\', $dirs);
+
+        return $mode;
     }
 
     /**
@@ -431,7 +491,7 @@ abstract class Base
     public function getMode()
     {
         $mode = $this->request->param('mode');
-        if (!$mode || !preg_match("/^([0-9a-z]+~)?[0-9a-z\._]+(:[0-9a-z_]+)?(\(.*\))?$/i", $mode)) {
+        if (!$mode || !preg_match("/^([0-9a-z_\-]+~)?[0-9a-z\._\-]+(:[0-9a-z_\-]+)?(\(.*\))?$/i", $mode)) {
             $mode = $this->getDefaultMode();
         }
 
@@ -445,13 +505,13 @@ abstract class Base
      */
     public function getDefaultMode()
     {
-        $current_application = $this->session->param('application_name');
-        if (!empty($current_application)) {
-            $class = Common::classFromApplicationName($current_application);
-            $mode = method_exists($class, 'getDefaultMode') ? $class::getDefaultMode($this) : $class::DEFAULT_MODE;
-        }
-        elseif (!$mode = $this->cnf('application:default_mode')) {
-            $mode = 'user.response';
+        if (!$mode = $this->cnf('application:default_mode')) {
+            if ($current_application = $this->session->param('application_name')) {
+                $class = Common::classFromApplicationName($current_application);
+                $mode = method_exists($class, 'getDefaultMode') ? $class::getDefaultMode($this) : $class::DEFAULT_MODE;
+            } else {
+                $mode = 'user.response';
+            }
         }
 
         $pluginResponse = $this->execPlugin('overrideDefaultMode', $mode);
@@ -466,19 +526,24 @@ abstract class Base
      * Response from application
      *
      * @param string $mode
+     * @param array $extend_args
      *
      * @return void
      */
-    public function response($mode)
+    public function response($mode, array $extend_args = null)
     {
-        list($instance, $function, $args) = $this->instance($mode);
+        list($instance, $function, $arguments) = $this->instance($mode);
+
+        if (!is_null($extend_args)) {
+            $arguments = array_merge((array)$arguments, $extend_args);
+        }
 
         try {
             $instance->init();
-            if (is_null($args)) {
+            if (is_null($arguments)) {
                 $instance->$function();
             } else {
-                call_user_func_array([$instance, $function], $args);
+                call_user_func_array([$instance, $function], $arguments);
             }
         } catch (PermitException $e) {
             $this->view->bind('alert', $e->getMessage());
@@ -505,12 +570,13 @@ abstract class Base
         }
         if (!$this->session->param('application_name')) {
             $mode = $this->getMode();
-            if (preg_match('/^([0-9a-z]+)~.+$/', $mode, $match)) {
-                $this->root = ucfirst(strtolower($match[1]));
-                $mode = preg_replace('/^[0-9a-z]+~/', '', $mode);
+            if (preg_match('/^([0-9a-z_\-]+)~.+$/', $mode, $match)) {
+                $this->root = self::upperCamelCase($match[1]);
+                $mode = preg_replace('/^[0-9a-z_\-]+~/', '', $mode);
             }
-            $mode = explode(':', $mode);
-            $mode = explode('.', $mode[0]);
+            $tmp = explode(':', $mode);
+            $mode = $tmp[0];
+            $mode = explode('.', $mode);
             if (count($mode) > 2) {
                 $this->session->param('application_name', $mode[0]);
             }
@@ -577,8 +643,8 @@ abstract class Base
      */
     public function execPlugin()
     {
-        $args = func_get_args();
-        $func = array_shift($args);
+        $arguments = func_get_args();
+        $function = array_shift($arguments);
 
         $current_app = $this->session->param('application_name');
 
@@ -590,7 +656,7 @@ abstract class Base
             ) {
                 continue;
             }
-            array_unshift($args, $stack['class']);
+            array_unshift($arguments, $stack['class']);
             break;
         }
 
@@ -598,9 +664,15 @@ abstract class Base
         $result = [];
         foreach ($plugins as $plugin) {
             $class = "\\$plugin";
-            if (method_exists($class, $func)) {
+            if (!class_exists($class)) {
+                list($className, $prefix) = self::findClass($class);
+                if (!empty($className)) {
+                    $class = "\\$prefix$class";
+                }
+            }
+            if (method_exists($class, $function)) {
                 $inst = new $class($this);
-                $result[$plugin] = call_user_func_array([$inst, $func], $args);
+                $result[$plugin] = call_user_func_array([$inst, $function], $arguments);
             }
         }
 
@@ -621,14 +693,36 @@ abstract class Base
 
     public function reload($qsa = false)
     {
-        if ($qsa === false) {
-            $url = preg_replace('/\?.*$/', '', \P5\Environment::server('request_uri'));
+        $url = \P5\Environment::server('request_uri');
+
+        if (!empty($this->session->param('direct_uri'))) {
+             $url = $this->session->param('direct_uri');
+             $this->session->clear('direct_uri');
         }
+        elseif ($qsa === false) {
+            $url = preg_replace('/\?.*$/', '', $url);
+        }
+
         \P5\Http::redirect($url);
     }
 
     public static function isAjax()
     {
         return \P5\Environment::server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest';
+    }
+
+    public static function findClass($class)
+    {
+        $className = null;
+        $namespace = null;
+        $prefixes = \P5\Auto\Loader::getIgnoreNameSpaceToPath();
+        foreach ($prefixes as $prefix) {
+            if (class_exists("\\$prefix$class")) {
+                $className = $class;
+                $namespace = $prefix;
+                break;
+            }
+        }
+        return [$className, $namespace];
     }
 }

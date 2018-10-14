@@ -114,9 +114,38 @@ abstract class Common
      */
     public function setHtmlId($id)
     {
-        $globals = $this->view->param();
-        $header = $globals['header'];
+        $header = $this->view->param('header');
         $header['id'] = $id;
+        $this->view->bind('header', $header);
+    }
+
+    /**
+     * Modify HTML Class.
+     *
+     * @param $class
+     */
+    public function setHtmlClass($class)
+    {
+        $header = $this->view->param('header');
+        $header['class'] = $class;
+        $this->view->bind('header', $header);
+    }
+
+    /**
+     * Append HTML Class.
+     *
+     * @param $class
+     */
+    public function appendHtmlClass($class)
+    {
+        $header = $this->view->param('header');
+        if (isset($header['class'])) {
+            $header['class'] = array_merge((array)$header['class'], (array)$class); 
+            $header['class'] = array_values(array_filter($header['class']));
+        }
+        else {
+            $header['class'] = $class;
+        }
         $this->view->bind('header', $header);
     }
 
@@ -231,12 +260,21 @@ abstract class Common
     {
         $config = [
             'global' => [
-                'enable_user_alias' => $this->app->cnf('global:enable_user_alias')
+                'enable_user_alias' => $this->app->cnf('global:enable_user_alias'),
+                'assets_path' => $this->app->cnf('global:assets_path'),
             ]
         ];
         $this->view->bind('config', $config);
         $this->view->bind('apps', $this);
         $this->view->bind('nav', $this->navItems());
+
+        if ($cookie = \P5\Environment::cookie('script_referer')) {
+            $this->view->bind('referer', $cookie);
+            setcookie('script_referer', '', time() - 1);
+        }
+        elseif ($this->request->param('script_referer')) {
+            $this->view->bind('referer', $this->request->param('script_referer'));
+        }
     }
 
     public function staticPath()
@@ -252,6 +290,8 @@ abstract class Common
 
         $id = (isset($args[0])) ? $args[0] : 'default';
         $this->setHtmlId($id);
+
+        $plugins = $this->app->execPlugin('beforeRendering', $id);
 
         $this->view->bind('err', $this->app->err);
 
@@ -269,25 +309,47 @@ abstract class Common
         $args = func_get_args();
         $func = array_shift($args);
 
+        $plugins = $this->app->cnf('plugins:paths');
+        if (strpos($func, '::') > 0) {
+            list($plugin, $func) = explode('::', $func, 2);
+            $plugins = [$plugin];
+        }
+        elseif (strpos($func, '~') > 0) {
+            $unit = \Tms\Base::parseMode($func);
+            $plugins = [$unit['namespace']];
+            $package = $unit['package'];
+            $func = $unit['function'];
+        }
+
         $stacks = debug_backtrace();
         foreach ($stacks as $stack) {
             if ($stack['function'] === __FUNCTION__) {
                 continue;
             }
-            $class = null;
+            $caller = null;
             if (isset($stack['class'])) {
                 if ($stack['class'] === 'Tms\\Common' || $stack['class'] === 'Tms\\Base') {
                     continue;
                 }
-                $class = $stack['class'];
+                $caller = $stack['class'];
             }
-            array_unshift($args, $class);
+            array_unshift($args, $caller);
             break;
         }
 
-        $plugins = $this->app->cnf('plugins:paths');
         foreach ($plugins as $plugin) {
             $class = "\\$plugin";
+            if (!class_exists($class)) {
+                list($className, $prefix) = \Tms\Base::findClass($class);
+                if (!empty($className)) {
+                    $class = "\\$prefix$class";
+                }
+            }
+
+            if (isset($package)) {
+                $class .= "\\$package";
+            }
+
             if (method_exists($class, $func)) {
                 $inst = new $class($this->app);
                 return call_user_func_array([$inst, $func], $args);
@@ -350,21 +412,34 @@ abstract class Common
 
         // Response to normal HttpRequest
         if ($status === 0) {
-            $this->session->param('messages', $message);
+            $this->setMessages($message);
         }
         call_user_func_array($response[0], (array)$response[1]);
     }
 
     protected function redirect($mode, $type = 'redirect')
     {
-        $url = $this->app->systemURI().'?mode='.filter_var($mode, FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
+        if ($type === 'redirect') {
+            $mode = preg_replace_callback(
+                '/%5C(%[0-9A-F]{2})/',
+                function($match) {
+                    return urldecode($match[1]);
+                },
+                filter_var($mode, FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH)
+            );
+            $url = $this->app->systemURI()."?mode=$mode";
+        }
+        else {
+            $url = $mode;
+        }
+
         if (!$this->isAjax) {
             \P5\Http::redirect($url);
         }
 
         $response = ['type' => $type, 'source' => $url];
 
-        if ($type !== 'redirect') {
+        if ($type !== 'redirect' && $type !== 'referer' && $type !== 'reload') {
             list($instance, $function, $args) = $this->app->instance($mode);
             try {
                 $instance->init();
@@ -386,6 +461,10 @@ abstract class Common
         }
 
         $mode = strtolower(strtr(get_class($instance), '\\', '.'));
+
+        if (preg_match('/^plugin\.(.+)$/', $mode, $match)) {
+            $mode = $match[1];
+        }
 
         if ($instance instanceof Plugin) {
             $mode = preg_replace('/\./', '~', $mode, 1);
@@ -491,5 +570,17 @@ abstract class Common
                 $this->view->prependPath($path);
             }
         }
+    }
+
+    protected function setMessages($message)
+    {
+        $this->session->param('messages', $message);
+    }
+
+    protected function appendMessages($message)
+    {
+        $origin = $this->session->param('messages');
+        $separator = (empty($origin)) ? '' : PHP_EOL;
+        $this->session->param('messages', $origin.$separator.$message);
     }
 }

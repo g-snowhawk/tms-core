@@ -61,8 +61,10 @@ class System extends \Tms\User
     protected function saveChecksum($logfile = 'install.log')
     {
         $install_log = $this->app->cnf('global:log_dir') . "/$logfile";
+
+        $checksums = ($logfile === 'install.log') ? $this->checksum : $this->checksum_plugins;
         $src = '';
-        foreach ($this->checksum as $key => $value) {
+        foreach ($checksums as $key => $value) {
             $src .= implode("\t", [$key, $value['version'], $value['md5']]) . PHP_EOL;
         }
 
@@ -82,6 +84,16 @@ class System extends \Tms\User
     protected function getPackageVersion($key)
     {
         return (isset($this->checksum[$key])) ? $this->checksum[$key]['version'] : null;
+    }
+
+    protected function setChecksumPlugins($unit)
+    {
+        $this->checksum_plugins[$unit[0]] = ['version' => $unit[1], 'md5' => $unit[2]];
+    }
+
+    protected function getPluginMd5($key)
+    {
+        return (isset($this->checksum_plugins[$key])) ? $this->checksum_plugins[$key]['md5'] : null;
     }
 
     protected function getPluginVersion($key)

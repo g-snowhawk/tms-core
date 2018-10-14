@@ -1,10 +1,14 @@
 {% if not apps.isAjax %}
 
+{% set blocks = {} %}
 {% if block('head') is defined %}
-  {% include 'header.tpl' with {head: block('head')} %}
-{% else %}
-  {% include 'header.tpl' %}
+  {% set blocks = {'head': block('head')}|merge(blocks) %}
 {% endif %}
+{% if block('links') is defined %}
+  {% set blocks = {'links': block('links')}|merge(blocks) %}
+{% endif %}
+{% include 'header.tpl' with blocks %}
+
 {% if messages is not empty %}
   <body data-loadmessage="{{ messages|url_encode }}">
 {% endif %}
@@ -23,7 +27,7 @@
             {% if session.origin is defined %}
               <li><a href="?mode=user.response:rewind">アカウント復帰</a></li>
             {% endif %}
-            <li><hr><a href="?logout" id="signout">サインアウト</a></li>
+            <li><hr><a href="?logout" class="signout" id="signout">サインアウト</a></li>
           </ul>
         </li>
         {% if nav|length > 1 %} 

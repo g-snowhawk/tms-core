@@ -8,16 +8,16 @@
  * @version 1.0.0
  */
 
-var TM_Upload = function() {
-    this.onLoad(this, 'init');
+var TM_Uploader = function() {
     this.ta = undefined;
     this.lstr = '';
     this.mstr = '';
     this.rstr = '';
     this.popupwindow = undefined;
+    TM.initModule(this.init, this, 'interactive');
 };
-TM_Upload.prototype.init = function(ev) {
-    var els = document.getElementsByClassName('image-selector');
+TM_Uploader.prototype.init = function(ev) {
+    var els = document.getElementsByClassName(TM.form.cnImageSelector);
     for(var i = 0; i < els.length; i++){
         els[i].addEventListener('change', this.onChange, false);
         var prn = TM.getParentNode(els[i], '.file-set');
@@ -29,38 +29,38 @@ TM_Upload.prototype.init = function(ev) {
 
     //window.addEventListener('drop', this.onDrop, false);
 
-    TM.upload.ta = document.getElementById('body');
-    if (!TM.upload.ta) {
+    this.ta = document.getElementById('body');
+    if (!this.ta) {
         return;
     }
-    TM.upload.ta.addEventListener('dragover', this.onDragCancel, false);
-    TM.upload.ta.addEventListener('dragenter', this.onDragCancel, false);
-    TM.upload.ta.addEventListener('drop', this.onDrop, false);
+    this.ta.addEventListener('dragover', this.onDragCancel, false);
+    this.ta.addEventListener('dragenter', this.onDragCancel, false);
+    this.ta.addEventListener('drop', this.onDrop, false);
 
     var els = document.getElementsByTagName('img');
     for(var i = 0; i < els.length; i++){
         els[i].addEventListener('dragstart', this.onDragStart, false);
     }
 };
-TM_Upload.prototype.onClick = function(ev) {
+TM_Uploader.prototype.onClick = function(ev) {
     ev.preventDefault();
-    TM.upload.delete(ev.currentTarget);
+    TM.uploader.delete(ev.currentTarget);
 };
-TM_Upload.prototype.onChange = function(ev) {
+TM_Uploader.prototype.onChange = function(ev) {
     if(ev.currentTarget.value == ''){
         ev.preventDefault();
         return;
     }
-    TM.upload.thumbnail(ev.currentTarget);
+    TM.uploader.thumbnail(ev.currentTarget);
 };
-TM_Upload.prototype.onDragCancel = function(ev) {
+TM_Uploader.prototype.onDragCancel = function(ev) {
     ev.preventDefault();
 };
-TM_Upload.prototype.onDragStart = function(ev) {
+TM_Uploader.prototype.onDragStart = function(ev) {
     var el = ev.currentTarget;
     ev.dataTransfer.setData('src', el.src);
 };
-TM_Upload.prototype.onDrop = function(ev) {
+TM_Uploader.prototype.onDrop = function(ev) {
     ev.preventDefault();
     ev.stopPropagation();
     var el = ev.currentTarget;
@@ -68,17 +68,17 @@ TM_Upload.prototype.onDrop = function(ev) {
         return;
     }
 
-    el = TM.upload.ta;
+    el = TM.uploader.ta;
     var val = el.value;
     var s = el.selectionStart;
     var e = el.selectionEnd;
-    TM.upload.lstr = val.slice(0, s);
-    TM.upload.rstr = val.slice(e);
-    TM.upload.mstr = (s != e) ? val.slice(s, e) : '';
+    TM.uploader.lstr = val.slice(0, s);
+    TM.uploader.rstr = val.slice(e);
+    TM.uploader.mstr = (s != e) ? val.slice(s, e) : '';
 
-    TM.upload.ta.value = TM.upload.lstr + '![' + TM.upload.mstr + '](' + ev.dataTransfer.getData('src') + ')' + TM.upload.rstr;
+    TM.uploader.ta.value = TM.uploader.lstr + '![' + TM.uploader.mstr + '](' + ev.dataTransfer.getData('src') + ')' + TM.uploader.rstr;
 };
-TM_Upload.prototype.delete = function(el) {
+TM_Uploader.prototype.delete = function(el) {
     var i, ipt;
     var prn = TM.getParentNode(el, '.file-set');
     if (el.href == '#cancel') {
@@ -119,7 +119,7 @@ TM_Upload.prototype.delete = function(el) {
         el.style.opacity = '1';
     }
 };
-TM_Upload.prototype.thumbnail = function(el) {
+TM_Uploader.prototype.thumbnail = function(el) {
     var prn = TM.getParentNode(el, '.file-set');
     var span = prn.getElementsByClassName('thumbnail');
     if(span.length < 1) return;
@@ -141,7 +141,7 @@ TM_Upload.prototype.thumbnail = function(el) {
             cln.innerHTML = prn.innerHTML;
             var ipt = cln.getElementsByTagName('input');
             for(i = 0; i < ipt.length; i++){
-                ipt[i].addEventListener('change', TM.upload.onChange, false);
+                ipt[i].addEventListener('change', TM.uploader.onChange, false);
             }
             el.parentNode.className = 'selected';
 
@@ -159,7 +159,7 @@ TM_Upload.prototype.thumbnail = function(el) {
             img.src = this.result;
             fileType = 'image';
         } else {
-            var dir = location.pathname.replace(/[^\/]+$/, '');
+            var dir = TM_Common.__DIR__ + '/../';
             img.src = dir + 'style/icon_pdf.svg';
 
             var spn = span.appendChild(document.createElement('span'));
@@ -169,12 +169,12 @@ TM_Upload.prototype.thumbnail = function(el) {
         }
         img.title = el.value;
         img.draggable = false;
-        img.addEventListener('dragstart', TM.upload.onDragStart, false);
+        img.addEventListener('dragstart', TM.uploader.onDragStart, false);
 
         var a = prn.appendChild(document.createElement('a'));
         a.href = '#delete';
         a.className = 'mark';
-        a.addEventListener('click', TM.upload.onClick, false);
+        a.addEventListener('click', TM.uploader.onClick, false);
 
         var template = document.getElementById('popup-note');
         var popup = template.content.querySelector('.popup');
@@ -189,10 +189,5 @@ TM_Upload.prototype.thumbnail = function(el) {
     }
     render.readAsDataURL(file);
 };
-TM_Upload.prototype.onLoad = function(scope, func) {
-    addEventListener('load', function(ev){ scope[func](ev); }, false);
-};
 
-// Create instance
-if (!window.TM) window.TM = new TM_Common();
-TM.upload = new TM_Upload();
+TM.uploader = new TM_Uploader();

@@ -27,7 +27,7 @@
     </div>
 {% endif %}
     <div class="form-footer">
-      <script src="script/signin.js" charset="utf-8"></script>
+      <script src="{{ config.global.assets_path }}script/signin.js" charset="utf-8"></script>
       <noscript>
         <p class="err">本プログラムの使用にはJavaScriptが必要です<br>
           JavaScriptを有効にしてください</p>

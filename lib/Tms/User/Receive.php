@@ -58,7 +58,10 @@ class Receive extends Response
         if (false === parent::saveAlias()) {
             $message = 'FAILED_SAVE';
             $status = 1;
-            $response = [[$this, 'edit'], null];
+            $options = [
+                [[$this->view, 'bind'], ['err', $this->app->err]],
+            ];
+            $response = [[$this, 'editAliasSubform'], null];
         }
 
         $this->postReceived(\P5\Lang::translate($message), $status, $response, $options);

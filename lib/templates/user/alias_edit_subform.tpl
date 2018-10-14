@@ -12,9 +12,13 @@
       <label for="fullname"><sup class="necessary">(必須)</sup>フルネーム</label>
       <input type="text" name="fullname" id="fullname" value="{{ post.fullname}}">
     </div>
-    {% if err.vl_email == 1 %}
+    {% if err.vl_email > 0 %}
       <div class="error">
-        <i>入力してください</i>
+        {% if err.vl_email == 1 %}
+          <i>入力してください</i>
+        {% elseif err.vl_email == 301 %}
+          <i>既に登録済みの値です</i>
+        {% endif %}
       </div>
     {% endif %}
     <div class="fieldset{% if err.vl_email == 1 %} invalid{% endif %}">
@@ -26,10 +30,14 @@
       <input type="text" name="tel" id="tel" value="{{ post.tel }}">
     </div>
     {% if post.id is empty %}
-      {% if err.vl_uname == 1 %}
-            <div class="error">
-              <i>入力してください</i>
-            </div>
+      {% if err.vl_uname > 0 %}
+        <div class="error">
+          {% if err.vl_uname == 1 %}
+            <i>入力してください</i>
+          {% elseif err.vl_uname == 301 %}
+            <i>既に登録済みの値です</i>
+          {% endif %}
+        </div>
       {% endif %}
       <div class="fieldset{% if err.vl_uname == 1 %} invalid{% endif %}">
         <label for="uname"><sup class="necessary">(必須)</sup>ログイン名</label>
@@ -41,7 +49,7 @@
       <p><label><input type="checkbox" name="admin" value="1"{% if post.admin == '1' %} checked{% endif %}>管理ユーザー</label></p>
     {% endif %}
 
-    <script src="script/tms_user.js" charset="utf-8"></script>
+    <script src="{{ config.global.assets_path }}script/tms_user.js" charset="utf-8"></script>
     <h2><a href="#update-password" class="accordion-switcher" data-callback="erasePassword">パスワード{% if post.id is empty %}設定{% else %}変更{% endif %}</a></h2>
     <div id="update-password" class="accordion">
       <div class="fieldset{% if err.vl_upass == 1 %} invalid{% endif %}">
@@ -54,10 +62,8 @@
       </div>
     </div>
 
-    <div class="metadata">
-      登録日：{{ post.create_date|date('Y年n月j日 H:i') }}<input type="hidden" name="create_date" value="{{ post.create_date }}"><br>
-      更新日：{{ post.modify_date|date('Y年n月j日 H:i') }}<input type="hidden" name="modify_date" value="{{ post.modify_date }}"><br>
-    </div>
+    {% include 'edit_form_metadata.tpl' %}
+
     <div class="form-footer">
       <input type="submit" name="s1_submit" value="登録">
       <input type="hidden" name="mode" value="user.receive:saveAlias">
@@ -65,4 +71,5 @@
       <input type="hidden" name="callback" value="TM.userAlias.refreshList">
     </div>
   </div>
+  <!-- ORIGINAL:TEMPLATE -->
 {% endblock %}
