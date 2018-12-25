@@ -1,4 +1,6 @@
 <?php
+/* ========================================================================== */
+
 /*
  * デバッグモード
  * 0: 無効
@@ -25,13 +27,14 @@ define('CONFIG_FILE', SYSTEM_ROOT . '/data/config.php');
 
 /*
  * エラーログを記録するファイルパス
+ * 絶対パスでの記述を推奨
  */
 define('ERROR_LOG_DESTINATION', SYSTEM_ROOT . '/data/logs/error.log');
 
 /*
  * エラー出力テンプレート
  */
-define('ERROR_DOCUMENT', SYSTEM_ROOT . '/lib/templates/Error.tpl');
+define('ERROR_DOCUMENT', 'templates/Error.tpl');
 
 /*
  * 追加のインクルードパス

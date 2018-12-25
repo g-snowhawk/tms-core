@@ -88,13 +88,6 @@ abstract class Base
     private $logger;
 
     /**
-     * CLI running
-     *
-     * @var bool
-     */
-    public $isCLI = false;
-
-    /**
      * Error Messges.
      *
      * @var array
@@ -116,12 +109,20 @@ abstract class Base
         $this->env = new \P5\Environment();
         $this->request = new \P5\Html\Form();
 
+        $this->db = new Db(
+            $this->cnf('database:db_driver'),
+            $this->cnf('database:db_host'),
+            $this->cnf('database:db_source'),
+            $this->cnf('database:db_user'),
+            $this->cnf('database:db_password'),
+            $this->cnf('database:db_port'),
+            $this->cnf('database:db_encoding')
+        );
+        $this->db->setTablePrefix($this->cnf('database:db_table_prefix'));
+
         $save_path = $this->cnf('global:tmp_dir');
         $path = (string)$this->cnf('session:cookie_path');
-        if (empty($path)) {
-            $path = '/';
-        }
-        elseif (false !== strpos($path, '*')) {
+        if (false !== strpos($path, '*')) {
             $pattern = preg_quote($path, '/');
             $pattern = '/^('.str_replace(['\\*\\*', '\\*'], ['.+', '[^\/]+'], $pattern).')/';
             if ($s = preg_match($pattern, \P5\Environment::server('request_uri'), $match)) {
@@ -138,17 +139,6 @@ abstract class Base
         }
         $this->session->setName($name);
         $this->session->start();
-
-        $this->db = new Db(
-            $this->cnf('database:db_driver'),
-            $this->cnf('database:db_host'),
-            $this->cnf('database:db_source'),
-            $this->cnf('database:db_user'),
-            $this->cnf('database:db_password'),
-            $this->cnf('database:db_port'),
-            $this->cnf('database:db_encoding')
-        );
-        $this->db->setTablePrefix($this->cnf('database:db_table_prefix'));
 
         $this->view = $this->createView();
     }
@@ -244,7 +234,12 @@ abstract class Base
         $err = array('vl_empty' => 0, 'vl_mismatch' => 0, 'vl_nocookie' => 0);
         $auth = new \Tms\Security($authTable, $this->db, $this->cnf('global:password_encrypt_algorithm'));
 
-        if (false === $auth->authentication($uname, $upass)) {
+        $secret = '';
+        $columns = $this->db->getFields('user', false, false, "like 'pw_%'");
+        //$expire = (in_array('pw_expire', $columns)) ? 'pw_expire' : null;
+        $expire = 'pw_expire';
+
+        if (false === $auth->authentication($uname, $upass, $secret, $expire)) {
             if (!is_null($this->request->POST('authEnabler'))) {
                 if (!isset($_COOKIE['enableCookie'])) {
                     $err['vl_nocookie'] = 1;
@@ -383,12 +378,46 @@ abstract class Base
      */
     public function instance($mode = null)
     {
+        $unit = self::checkMode($mode, $this->root, $this->cnf('plugins:paths'));
+        $package = $unit['namespace'] . '\\' . $unit['package'];
+        $instance = new $package($this);
+        if (empty($unit['function']) && method_exists($instance, self::DEFAULT_METHOD)) {
+            $unit['function'] = self::DEFAULT_METHOD;
+        }
+
+        return array($instance, $unit['function'], $unit['arguments']);
+    }
+
+    public function guestExcutable($mode) //: boolean
+    {
+        $unit = self::checkMode($mode, $this->root, $this->cnf('plugins:paths'));
+        $package = $unit['namespace'] . '\\' . $unit['package'];
+
+        if (!is_callable([$package,'guestExecutables'])) {
+            return false;
+        }
+
+        list($class, $executables) = $package::guestExecutables();
+
+        $implements = array_diff(
+            class_implements($class),
+            class_implements(get_parent_class($class))
+        );
+        if (!in_array('Tms\\Unauth', $implements)) {
+            return false;
+        }
+
+        return in_array($unit['function'], $executables);
+    }
+
+    private static function checkMode($mode, $root = '', $plugin_paths = [])
+    {
         $unit = self::parseMode($mode);
-        if (!empty($unit['namespace']) && !in_array($unit['namespace'], $this->cnf('plugins:paths'))) {
+        if (!empty($unit['namespace']) && !in_array($unit['namespace'], $plugin_paths)) {
             throw new \ErrorException("{$unit['namespace']} is not enabled");
         }
         if (empty($unit['namespace'])) {
-            $unit['namespace'] = $this->root;
+            $unit['namespace'] = $root;
         }
 
         list($namespace, $prefix) = self::findClass('\\'.$unit['namespace']);
@@ -407,12 +436,8 @@ abstract class Base
         ) {
             trigger_error("System Error: Class `$package' is an invalid package.", E_USER_WARNING);
         }
-        $instance = new $package($this);
-        if (empty($unit['function']) && method_exists($instance, self::DEFAULT_METHOD)) {
-            $unit['function'] = self::DEFAULT_METHOD;
-        }
 
-        return array($instance, $unit['function'], $unit['arguments']);
+        return $unit;
     }
 
     /*
@@ -594,7 +619,7 @@ abstract class Base
      */
     public function setcookie($name, $value, $expire = 0, $path = null, $domain = null, $secure = false, $http_only = true)
     {
-        if ($this->isCLI) {
+        if (php_sapi_name() === 'cli') {
             return;
         }
 

@@ -115,6 +115,14 @@ class User extends \Tms\Common
         if (!$this->validate($valid)) {
             return false;
         }
+
+        if (!empty($post['reissue'])) {
+            if (empty($post['upass'])) {
+                $post['upass'] = \P5\Security::createPassword(12, 2, 1);
+                $post['pw_type'] = $post['reissue'];
+            }
+        }
+
         $this->db->begin();
 
         $fields = $this->db->getFields($this->db->TABLE($table));
@@ -178,6 +186,11 @@ class User extends \Tms\Common
             }
 
             if ($result !== false) {
+                if (!empty($post['reissue'])) {
+                    $uname = $this->db->get('uname', 'user', 'id=?', [$post['id']]);
+                    $this->session->param('reissued_username', $uname);
+                    $this->session->param('reissued_password', $post['upass']);
+                }
                 return $this->db->commit();
             }
         }
@@ -665,5 +678,33 @@ class User extends \Tms\Common
                  ON p.userkey = u.id
               WHERE u.id IS NULL"
         );
+    }
+
+    protected function reissuedMail()
+    {
+        $post = $this->request->post();
+
+        $valid = [];
+        $valid[] = ['vl_mail_subject', 'mail_subject', 'empty'];
+        $valid[] = ['vl_mail_body', 'mail_body', 'empty'];
+
+        if (!$this->validate($valid)) {
+            return false;
+        }
+
+        $to = $this->db->get('email', 'user', 'uname = ?', [$this->session->param('reissued_username')]);
+        $from = $this->userinfo['email'];
+
+        $mail = new \P5\Mail();
+        $mail->setEncoding('utf-8');
+        $mail->from($from);
+        $mail->subject($post['mail_subject']);
+        $mail->message($post['mail_body']);
+        if (defined('RETURN_PATH') && RETURN_PATH === 1) {
+            $mail->envfrom($from);
+        }
+        $mail->to();
+        $mail->to($to);
+        return $mail->send();
     }
 }

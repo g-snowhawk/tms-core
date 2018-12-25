@@ -718,16 +718,17 @@ class Db extends \P5\Db
      * @param string $table    Table Name
      * @param bool   $property
      * @param bool   $comment
+     * @param string $statement
      *
      * @return mixed
      */
-    public function getFields($table, $property = false, $comment = false)
+    public function getFields($table, $property = false, $comment = false, $statement = '')
     {
         // compatible
         if (strpos($table, $this->prefix) !== 0) {
             $table = self::TABLE($table);
         }
 
-        return parent::getFields($table, $property, $comment);
+        return parent::getFields($table, $property, $comment, $statement);
     }
 }

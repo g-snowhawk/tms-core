@@ -55,7 +55,7 @@ abstract class Common
             throw new \ErrorException('No such application');
         }
 
-        if (method_exists($this, 'packageName')) {
+        if (!is_null($this->session) && method_exists($this, 'packageName')) {
             $this->session->param('application_name', $this->packageName());
         }
 

@@ -91,6 +91,13 @@ class View implements View_Interface
 
     public function __clone()
     {
+        $globals = $this->param();
+        $this->resetEngine();
+        if (is_array($globals)) {
+            foreach ($globals as $key => $value) {
+                $this->bind($key, $value);
+            }
+        }
     }
 
     public function resetEngine()

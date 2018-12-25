@@ -14,6 +14,8 @@ CREATE TABLE `TMS_user` (
   `email` varchar(255) DEFAULT NULL,
   `admin` int(11) DEFAULT '0',
   `upass` text,
+  `pw_type` enum('irreversible','reversible','temporary'),
+  `pw_expire` datetime DEFAULT NULL,
   `company` varchar(255) DEFAULT NULL,
   `division` varchar(255) DEFAULT NULL,
   `fullname` varchar(255) DEFAULT NULL,

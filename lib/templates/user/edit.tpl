@@ -111,6 +111,12 @@
         <label for="retype">再入力</label>
         <input type="password" placeholder="半角英数字" name="retype" id="retype" autocomplete="off">
       </div>
+      {% if post.profile != 1 %}
+        <div class="fieldset">
+          <label for="reissue">再発行</label>
+          <div class="input"><label><input type="checkbox" name="reissue" id="reissue" value="temporary">パスワードを再発行する</label></div>
+        </div>
+      {% endif %}
     </div>
 
     {% if post.profile != 1 %}

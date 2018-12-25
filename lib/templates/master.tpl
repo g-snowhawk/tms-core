@@ -81,4 +81,8 @@
 {% if not apps.isAjax %}
     {% block subform %}{% endblock %}
   </div>
+  {% set template = "alert/pw_security.tpl" %}
+  {% if apps.view.exists(template) %} 
+    {% include template %}
+  {% endif %}
 {% endif %}

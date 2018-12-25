@@ -83,7 +83,6 @@ class App extends Base
 
         // CLI mode
         if (php_sapi_name() === 'cli') {
-            $this->isCLI = true;
             global $argv;
             $options = getopt('m:p::g::',['mode:','post::','get::']);
             $mode = (isset($options['m'])) ? $options['m'] : $options['mode'];
@@ -97,9 +96,7 @@ class App extends Base
             if (empty($mode)) {
                 exit;
             }
-        }
 
-        if ($this->isCLI) {
             list($instance, $function, $args) = $this->instance($mode);
             call_user_func_array([$instance, $function], (array)$args_cli);
             exit;
@@ -152,10 +149,14 @@ class App extends Base
                 // Failure
                 if (false === $this->auth('user')) {
                     $this->setcookie('enableCookie', 'yes', 0, null, null, false, false);
-                    $mode = (!is_null($this->cnf('application:authentication_failed')))
-                        ? $this->cnf('application:authentication_failed')
-                        : 'system.response:failed';
-                    $this->request->param('mode', $mode);
+
+                    // Check guest executable
+                    if (false === $this->guestExcutable($this->getMode())) {
+                        $mode = (!is_null($this->cnf('application:authentication_failed')))
+                            ? $this->cnf('application:authentication_failed')
+                            : 'system.response:failed';
+                        $this->request->param('mode', $mode);
+                    }
                 }
             }
         } else {
