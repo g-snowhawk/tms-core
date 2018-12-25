@@ -1899,3 +1899,24 @@ div.alert section h2 {
   margin: 3px auto;
   width: 100%;
 }
+
+#user-reissued textarea[name=mail_body] {
+  height: 300px;
+}
+
+@media screen {
+  #print-frame {
+    display: none;
+  }
+}
+@media print {
+  #print-user-reissued body {
+    font-size: 14pt;
+    margin: 20mm auto;
+    width: 160mm;
+  }
+  #print-user-reissued h1 {
+    font-size: 20pt;
+    margin-top: 0;
+  }
+}

@@ -202,6 +202,13 @@ class Response extends \Tms\System
         self::echoLog(dirname(ERROR_LOG_DESTINATION).'/access.log');
     }
 
+    public function printFrame()
+    {
+        $this->setHtmlId('print-dummy');
+        $this->appendHtmlClass('print');
+        parent::defaultView('print_dummy');
+    }
+
     private static function echoLog($logfile)
     {
         \P5\Http::nocache();

@@ -16,7 +16,7 @@ namespace Tms\User;
  * @license https://www.plus-5.com/licenses/mit-license  MIT License
  * @author  Taka Goto <www.plus-5.com>
  */
-class Response extends \Tms\User
+class Response extends Unauth
 {
     /**
      * Object Constructor.
@@ -38,6 +38,10 @@ class Response extends \Tms\User
     public function defaultView($restriction = null)
     {
         $this->checkPermission('user.read');
+
+        // Clear reissued data
+        $this->session->clear('reissued_username');
+        $this->session->clear('reissued_password');
 
         $this->view->bind('users', parent::getUsers($restriction));
 
@@ -288,5 +292,42 @@ class Response extends \Tms\User
         header('Content-type: text/plain; charset=utf-8');
         echo json_encode($json);
         exit;
+    }
+
+    public function reissued()
+    {
+        if (empty($this->session->param('reissued_password'))) {
+            $this->defaultView();
+        }
+
+        $this->checkPermission('user.read');
+
+        $post = $this->request->POST();
+        if (empty($post['mail_subject'])) {
+            $post['mail_subject'] = \P5\Lang::translate('REISSUED_MAIL_SUBJECT');
+        }
+        if (empty($post['mail_body'])) {
+            $post['mail_body'] = $this->reissuedResult();
+        }
+        $this->view->bind('post', $post);
+
+        // form settings
+        $form = $this->view->param('form');
+        $form['confirm'] = \P5\Lang::translate('CONFIRM_SENDMAIL');
+        $this->view->bind('form', $form);
+
+        parent::defaultView('user-reissued');
+    }
+
+    private function reissuedResult() //: string
+    {
+        $this->checkPermission('user.read');
+
+        $view = clone $this->view;
+
+        $view->bind('username', $this->session->param('reissued_username'));
+        $view->bind('password', $this->session->param('reissued_password'));
+
+        return $view->render('user/reissued_mail_body.tpl', true);
     }
 }

@@ -29,6 +29,9 @@ class Receive extends Response
             if ($this->request->param('profile') === '1') {
                 $url .= ':profile';
             }
+            elseif (!empty($this->session->param('reissued_password'))) {
+                $url .= ':reissued';
+            }
             \P5\Http::redirect($url);
         }
         $this->edit();
@@ -72,5 +75,29 @@ class Receive extends Response
         //    \P5\Http::redirect($url);
         //}
         //$this->edit();
+    }
+
+    public function reissuedMail()
+    {
+        $message = 'SUCCESS_REISSUED_MAIL';
+        $status = 0;
+        $options = [];
+
+        $returnmode = $this->request->post('returnmode');
+        if (empty($returnmode)) {
+            $returnmode = 'user.response';
+        }
+        $response = [[$this, 'redirect'], $returnmode];
+
+        if (false === parent::reissuedMail()) {
+            $message = 'FAILED_REISSUED_MAIL';
+            $status = 1;
+            $options = [
+                [[$this->view, 'bind'], ['err', $this->app->err]],
+            ];
+            $response = [[$this, 'reissued'], null];
+        }
+
+        $this->postReceived(\P5\Lang::translate($message), $status, $response, $options);
     }
 }

@@ -49,12 +49,13 @@ class Security extends \P5\Security
      * @param string $uname
      * @param string $upass
      * @param string $secret
+     * @param string $expire
      *
      * @return bool
      */
-    public function authentication($uname, $upass, $secret = '')
+    public function authentication($uname, $upass, $secret = '', $expire = null)
     {
-        $authorized = parent::authentication($uname, $upass, $secret);
+        $authorized = parent::authentication($uname, $upass, $secret, $expire);
 
         $results = $this->app->execPlugin('afterAuthentication', $uname, $authorized);
         foreach ($results as $result) {
