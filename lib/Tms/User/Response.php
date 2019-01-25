@@ -294,20 +294,25 @@ class Response extends Unauth
         exit;
     }
 
-    public function reissued()
+    public function reissued() //: void
     {
-        if (empty($this->session->param('reissued_password'))) {
+        $reissued_username = $this->session->param('reissued_username');
+        $reissued_password = $this->session->param('reissued_password');
+        if (empty($reissued_password)) {
             $this->defaultView();
         }
 
-        $this->checkPermission('user.read');
+        $userkey = $this->db->get('id', 'user', 'uname = ?', [$reissued_username]);
+        if (false === $this->isParent($userkey)) {
+            $this->checkPermission('user.read');
+        }
 
         $post = $this->request->POST();
         if (empty($post['mail_subject'])) {
             $post['mail_subject'] = \P5\Lang::translate('REISSUED_MAIL_SUBJECT');
         }
         if (empty($post['mail_body'])) {
-            $post['mail_body'] = $this->reissuedResult();
+            $post['mail_body'] = $this->reissuedResult($reissued_username, $reissued_password);
         }
         $this->view->bind('post', $post);
 
@@ -319,14 +324,11 @@ class Response extends Unauth
         parent::defaultView('user-reissued');
     }
 
-    private function reissuedResult() //: string
+    private function reissuedResult($reissued_username, $reissued_password) //: string
     {
-        $this->checkPermission('user.read');
-
         $view = clone $this->view;
-
-        $view->bind('username', $this->session->param('reissued_username'));
-        $view->bind('password', $this->session->param('reissued_password'));
+        $view->bind('username', $reissued_username);
+        $view->bind('password', $reissued_password);
 
         return $view->render('user/reissued_mail_body.tpl', true);
     }
