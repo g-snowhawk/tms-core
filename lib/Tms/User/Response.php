@@ -89,7 +89,7 @@ class Response extends Unauth
         } else {
             $post = $this->db->get(
                 'id, admin, fullname, company, email, url, zip, state, city, town,
-                 address1, address2, tel, fax, create_date, modify_date',
+                 address1, address2, tel, fax, free1, free2, free3, create_date, modify_date',
                 'user', 'id = ?', [$this->request->param('id')]
             );
             $stat = $this->db->select(
