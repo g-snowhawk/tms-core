@@ -92,8 +92,11 @@ class User extends \Tms\Common
             $this->request->post('id', $this->uid);
         } else {
             $id = $this->request->POST('id');
-            $check = (empty($id)) ? 'create' : 'update';
-            $this->checkPermission('user.'.$check);
+            $check_type = (empty($id)) ? 'create' : 'update';
+            $is_parent = ($check_type === 'update') ? $this->isParent($id) : false;
+            if (false === $is_parent) {
+                $this->checkPermission('user.'.$check_type);
+            }
         }
 
         $post = $this->request->post();
@@ -214,12 +217,13 @@ class User extends \Tms\Common
      */
     protected function remove()
     {
-        $this->checkPermission('user.remove');
-
         $result = 0;
-        $this->db->begin();
-
         $id = $this->request->param('delete');
+        if (false === $this->isParent($id)) {
+            $this->checkPermission('user.remove');
+        }
+
+        $this->db->begin();
 
         $plugin_result = $this->app->execPlugin('beforeRemove', $id);
         foreach($plugin_result as $plugin_count) {
