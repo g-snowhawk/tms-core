@@ -103,6 +103,7 @@ input.sametext,
 input[type="datetime-local"],
 input[type="date"],
 input[type="time"],
+input[type="number"],
 input[type="password"],
 input[type="text"] {
   -webkit-appearance: none;
@@ -125,9 +126,10 @@ input[type="text"] {
   line-height: 1;
 }
 input.sametext:focus,
-input[type="datetime-local"],
-input[type="date"],
-input[type="time"],
+input[type="datetime-local"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="number"]:focus,
 input[type="password"]:focus,
 input[type="text"]:focus,
 textarea:focus {
