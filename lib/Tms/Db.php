@@ -295,9 +295,9 @@ class Db extends \P5\Db
      *
      * @return int
      */
-    public function recordCount($sql = '')
+    public function recordCount($sql = '', $options = null)
     {
-        return parent::recordCount(str_replace('table::', $this->prefix, $sql));
+        return parent::recordCount(str_replace('table::', $this->prefix, $sql), $options);
     }
 
     /**

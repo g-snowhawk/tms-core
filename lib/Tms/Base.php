@@ -353,7 +353,7 @@ abstract class Base
         );
     }
 
-    protected static function lowerCamelCase($str)
+    public static function lowerCamelCase($str)
     {
         return preg_replace_callback(
             '/[-_]([a-z])/',
@@ -364,7 +364,7 @@ abstract class Base
         );
     }
 
-    protected static function upperCamelCase($str)
+    public static function upperCamelCase($str)
     {
         return ucfirst(self::lowerCamelCase($str));
     }

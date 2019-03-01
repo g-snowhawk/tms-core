@@ -1906,6 +1906,26 @@ div.alert section h2 {
   height: 300px;
 }
 
+.flex-row-box {
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.flex-row-box > .grow-box {
+  flex-grow: 1;
+  flex-shrink: 1;
+  height: 0%;
+  overflow: auto;
+}
+.flex-row-box .explorer-list {
+  position: relative;
+}
+
 @media screen {
   #print-frame {
     display: none;
