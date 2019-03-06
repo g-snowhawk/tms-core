@@ -13,8 +13,6 @@ namespace Tms;
 /**
  * Use TCPDF/FPDI Library
  */
-require_once('tcpdf/tcpdf.php');
-require_once('setasign/Fpdi/autoload.php');
 use setasign\Fpdi\TcpdfFpdi;
 
 /**

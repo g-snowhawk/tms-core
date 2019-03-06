@@ -1,0 +1,33 @@
+{
+    "name": "g-snowhawk/tms-core",
+    "version": "1.0.0",
+    "type": "library",
+    "description": "Tak-Me framework.",
+    "author": {
+        "name": "Snowhawk",
+        "email": "githave@p5on.net",
+        "homepage": "https://www.plus-5.com"
+    },
+    "license": "MIT",
+    "repositories": [
+        {
+            "name": "g-snowhawk/p5",
+            "type": "vcs",
+            "url": "https://github.com/g-snowhawk/P5.git"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0",
+        "g-snowhawk/p5": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tms\\" : "lib/Tms/"
+        },
+        "classmap": [
+            "lib/Tms/System/System.php",
+            "lib/Tms/User/User.php",
+            "lib/Tms/View/View.php"
+        ]
+    }
+}
