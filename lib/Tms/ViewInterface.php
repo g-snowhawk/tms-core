@@ -16,7 +16,7 @@ namespace Tms;
  * @license https://www.plus-5.com/licenses/mit-license  MIT License
  * @author  Taka Goto <www.plus-5.com>
  */
-interface View_Interface
+interface ViewInterface
 {
     /**
      * Binding the parameters.

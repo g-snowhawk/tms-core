@@ -11,11 +11,6 @@
 namespace Tms;
 
 /**
- * @see Tms\Base
- */
-require_once 'Tms/Base.php';
-
-/**
  * Application controller class.
  *
  * @license https://www.plus-5.com/licenses/mit-license  MIT License

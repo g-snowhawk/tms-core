@@ -11,11 +11,6 @@
 namespace Tms;
 
 /**
- * @see P5\Auto\Loader
- */
-require_once 'P5/Auto/Loader.php';
-
-/**
  * Common accessor methods.
  *
  * @license https://www.plus-5.com/licenses/mit-license  MIT License
@@ -141,6 +136,13 @@ abstract class Base
         $this->session->start();
 
         $this->view = $this->createView();
+        $this->view->addPath(dirname(__DIR__).'/'.View::TEMPLATE_DIR_NAME);
+
+        $application_name = $this->session->param('application_name');
+        if (!empty($application_name)) {
+            $currentAppName = Common::classFromApplicationName($application_name);
+            $this->view->addPath($currentAppName::templateDir());
+        }
     }
 
     /**
@@ -426,15 +428,12 @@ abstract class Base
         }
 
         $package = $unit['namespace'] . '\\' . $unit['package'];
-        if (false === \P5\Auto\Loader::isIncludable($package)) {
-            trigger_error("System Error: Class `$package' is not found...", E_USER_ERROR);
-        }
         if (   false === is_subclass_of($package, 'Tms\\PackageInterface')
             && false === is_a($package, 'Tms\\User\\Response', true)
             && false === is_a($package, 'Tms\\System\\Response', true)
             && false === is_a($package, 'Tms\\Plugin', true)
         ) {
-            trigger_error("System Error: Class `$package' is an invalid package.", E_USER_WARNING);
+            trigger_error("System Error: Class `$package' is an invalid package.", E_USER_ERROR);
         }
 
         return $unit;

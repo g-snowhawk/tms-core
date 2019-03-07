@@ -11,11 +11,6 @@
 namespace Tms\Install;
 
 /**
- * @see P5_Auto_Loader
- */
-//require_once 'P5/Auto/Loader.php';
-
-/**
  * Application install class.
  *
  * @license https://www.plus-5.com/licenses/mit-license  MIT License

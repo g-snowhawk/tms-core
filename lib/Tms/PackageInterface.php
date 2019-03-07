@@ -69,6 +69,15 @@ interface PackageInterface
     public static function version();
 
     /**
+     * Path to templates directory.
+     *
+     * @final
+     *
+     * @return string|null
+     */
+    public static function templateDir();
+
+    /**
      * Application unload action
      */
     public static function unload();

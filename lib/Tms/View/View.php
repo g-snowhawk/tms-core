@@ -16,7 +16,7 @@ namespace Tms;
  * @license https://www.plus-5.com/licenses/mit-license  MIT License
  * @author  Taka Goto <www.plus-5.com>
  */
-class View implements View_Interface
+class View implements ViewInterface
 {
     /**
      * Directory name
@@ -247,7 +247,10 @@ class View implements View_Interface
      */
     public function addPath($path)
     {
-        if (!is_null($this->loader) && get_class($this->loader) === 'Twig_Loader_Filesystem') {
+        if (!empty($path)
+            && !is_null($this->loader)
+            && get_class($this->loader) === 'Twig_Loader_Filesystem'
+        ) {
             $this->engine->getLoader()->addPath($path);
         }
     }

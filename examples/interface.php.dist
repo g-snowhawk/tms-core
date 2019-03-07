@@ -37,6 +37,13 @@ define('ERROR_LOG_DESTINATION', SYSTEM_ROOT . '/data/logs/error.log');
 define('ERROR_DOCUMENT', 'templates/Error.tpl');
 
 /*
+ * Path to the Autoloader
+ */
+define('AUTOLOADER', '../vendor/autoload.php');
+
+require_once(AUTOLOADER);
+
+/*
  * 追加のインクルードパス
  */
 const INCLUDE_PATH = array(
