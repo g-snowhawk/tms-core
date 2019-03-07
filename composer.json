@@ -4,9 +4,9 @@
     "type": "library",
     "description": "Tak-Me framework.",
     "author": {
-        "name": "Snowhawk",
+        "name": "Taka G",
         "email": "githave@p5on.net",
-        "homepage": "https://www.plus-5.com"
+        "homepage": "https://www.p5on.net"
     },
     "license": "MIT",
     "repositories": [
