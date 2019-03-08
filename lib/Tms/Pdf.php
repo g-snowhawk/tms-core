@@ -91,6 +91,22 @@ class Pdf
         return $casted_value;
     }
 
+    public function setMetaData(array $data = []): void
+    {
+        foreach ($data as $key => $value) {
+            if (empty($value)) {
+                continue;
+            }
+            switch (strtolower($key)) {
+                case 'author':   $this->engine->SetAuthor($value);   break;
+                case 'creator':  $this->engine->SetCreator($value);  break;
+                case 'keywords': $this->engine->SetKeywords($value); break;
+                case 'subject':  $this->engine->SetSubject($value);  break;
+                case 'title':    $this->engine->SetTitle($value);    break;
+            }
+        }
+    }
+
     public function draw(array $drawing_map, ?array $data, $force_y = null, $offset_y = 0)
     {
         if (is_null($data)) {
@@ -213,7 +229,7 @@ class Pdf
         }
     }
 
-    public function encrypt(array $permissions, $user_password = '', $master_password = null, $mode = 2, $pubkeys = null): void
+    public function encrypt(array $permissions, $user_password = '', $master_password = null, $mode = 0, $pubkeys = null): void
     {
         $this->engine->SetProtection($permissions, $user_password, $master_password, $mode, $pubkeys);
     }
