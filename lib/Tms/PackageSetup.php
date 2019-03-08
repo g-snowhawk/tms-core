@@ -77,7 +77,11 @@ abstract class PackageSetup
             $sql = file_get_contents($sql_file);
             $sql = preg_replace('/TMS_/', $this->app->cnf('database:db_table_prefix'), $sql);
             $queries = explode(';', $sql);
+            $skip_error = false;
             foreach ($queries as $query) {
+                if (preg_match('/-- SKIP ERROR(.*)/', $query, $match)) {
+                    $skip_error = true;
+                }
                 $query = preg_replace("/-- [^\r\n]+/s", '', $query);
                 $query = preg_replace("/^[\s]+/s", '', $query);
                 if (empty($query)) {
@@ -85,8 +89,11 @@ abstract class PackageSetup
                 }
                 if (false === $this->app->db->query($query)) {
                     trigger_error($this->app->db->error());
-                    return false;
+                    if ($skip_error) {
+                        return false;
+                    }
                 }
+                $skip_error = false;
             }
         }
 

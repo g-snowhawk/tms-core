@@ -72,7 +72,7 @@
 
 {% endif %}
 
-    <form id="TMS-mainform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}"{% if form.confirm %} data-confirm="{{ form.confirm|url_encode }}"{% endif %}>
+    <form id="TMS-mainform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}"{% if form.confirm %} data-confirm="{{ form.confirm|url_encode }}"{% endif %}{% if form.class is defined %} class="{{ form.class is iterable ? form.class|join(' ') : form.class }}"{% endif %}>
       <input type="hidden" name="stub" value="{{ stub }}">
       {% block main %}{% endblock %}
       {% include 'nochange.tpl' %}

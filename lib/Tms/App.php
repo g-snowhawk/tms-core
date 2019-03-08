@@ -48,11 +48,6 @@ class App extends Base
         }
         ini_set('include_path', implode(PATH_SEPARATOR, $include_path));
 
-        /* Auto Load */
-        \P5\Auto\Loader::setNameSpace('Tms');
-        \P5\Auto\Loader::setIgnoreNameSpaceToPath(['plugin']);
-        \P5\Auto\Loader::register();
-
         /* Reset Error Handler */
         $errHandler = new Error($errTemplate);
 

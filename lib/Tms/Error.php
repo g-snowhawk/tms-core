@@ -38,6 +38,18 @@ class Error extends \P5\Error
      */
     public function __construct($template = null)
     {
+        if (!empty($template) && !is_file($template)) {
+            $paths = explode(PATH_SEPARATOR, get_include_path());
+            foreach ($paths as $path) {
+                $fullpath = $path . PATH_SEPARATOR . $template;
+                if (is_file($fullpath)) {
+                    $found = $fullpath;
+                    break;
+                }
+            }
+            $template = (isset($found)) ? $found : realpath(__DIR__ . "/../templates/Error.tpl");
+        }
+
         parent::__construct($template);
     }
 

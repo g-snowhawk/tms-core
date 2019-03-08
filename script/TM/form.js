@@ -143,7 +143,7 @@ TM_Form.prototype.captureForm = function(form) {
     var data = {};
     for (var i = 0; i < form.elements.length; i++) {
         var element = form.elements[i];
-        if (element.nodeName === 'SELECT') {
+        if (element.nodeName === 'SELECT' && element.selectedIndex !== -1) {
             data[element.name] = element.options[element.selectedIndex].value;
         }
         else if (element.nodeName === 'TEXTAREA') {

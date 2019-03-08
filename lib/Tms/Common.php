@@ -338,14 +338,7 @@ abstract class Common
         }
 
         foreach ($plugins as $plugin) {
-            $class = "\\$plugin";
-            if (!class_exists($class)) {
-                list($className, $prefix) = \Tms\Base::findClass($class);
-                if (!empty($className)) {
-                    $class = "\\$prefix$class";
-                }
-            }
-
+            $class = "\\plugin\\$plugin";
             if (isset($package)) {
                 $class .= "\\$package";
             }

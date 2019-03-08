@@ -104,16 +104,18 @@ abstract class Base
         $this->env = new \P5\Environment();
         $this->request = new \P5\Html\Form();
 
-        $this->db = new Db(
-            $this->cnf('database:db_driver'),
-            $this->cnf('database:db_host'),
-            $this->cnf('database:db_source'),
-            $this->cnf('database:db_user'),
-            $this->cnf('database:db_password'),
-            $this->cnf('database:db_port'),
-            $this->cnf('database:db_encoding')
-        );
-        $this->db->setTablePrefix($this->cnf('database:db_table_prefix'));
+        if (!is_null($this->cnf('database:db_host'))) {
+            $this->db = new Db(
+                $this->cnf('database:db_driver'),
+                $this->cnf('database:db_host'),
+                $this->cnf('database:db_source'),
+                $this->cnf('database:db_user'),
+                $this->cnf('database:db_password'),
+                $this->cnf('database:db_port'),
+                $this->cnf('database:db_encoding')
+            );
+            $this->db->setTablePrefix($this->cnf('database:db_table_prefix'));
+        }
 
         $save_path = $this->cnf('global:tmp_dir');
         $path = (string)$this->cnf('session:cookie_path');
@@ -136,13 +138,6 @@ abstract class Base
         $this->session->start();
 
         $this->view = $this->createView();
-        $this->view->addPath(dirname(__DIR__).'/'.View::TEMPLATE_DIR_NAME);
-
-        $application_name = $this->session->param('application_name');
-        if (!empty($application_name)) {
-            $currentAppName = Common::classFromApplicationName($application_name);
-            $this->view->addPath($currentAppName::templateDir());
-        }
     }
 
     /**
@@ -237,9 +232,8 @@ abstract class Base
         $auth = new \Tms\Security($authTable, $this->db, $this->cnf('global:password_encrypt_algorithm'));
 
         $secret = '';
-        $columns = $this->db->getFields('user', false, false, "like 'pw_%'");
-        //$expire = (in_array('pw_expire', $columns)) ? 'pw_expire' : null;
-        $expire = 'pw_expire';
+        $columns = (is_null($this->db)) ? [] : $this->db->getFields('user', false, false, "like 'pw_%'");
+        $expire = (in_array('pw_expire', $columns)) ? 'pw_expire' : null;
 
         if (false === $auth->authentication($uname, $upass, $secret, $expire)) {
             if (!is_null($this->request->POST('authEnabler'))) {
@@ -277,11 +271,11 @@ abstract class Base
             }
             $this->view->bind(
                 'form',
-                array(
+                [
                     'action' => $_SERVER['REQUEST_URI'],
                     'method' => 'post',
                     'enctype' => 'application/x-www-form-urlencoded',
-                )
+                ]
             );
             $post = $this->request->POST();
             if (!isset($post['uname'])) {
@@ -415,17 +409,21 @@ abstract class Base
     private static function checkMode($mode, $root = '', $plugin_paths = [])
     {
         $unit = self::parseMode($mode);
-        if (!empty($unit['namespace']) && !in_array($unit['namespace'], $plugin_paths)) {
-            throw new \ErrorException("{$unit['namespace']} is not enabled");
+        if (!empty($unit['namespace'])) {
+            if (in_array($unit['namespace'], $plugin_paths)) {
+                $unit['namespace'] = '\\plugin\\' . $unit['namespace'];
+            } else {
+                throw new \ErrorException("{$unit['namespace']} is not enabled");
+            }
         }
         if (empty($unit['namespace'])) {
             $unit['namespace'] = $root;
         }
 
-        list($namespace, $prefix) = self::findClass('\\'.$unit['namespace']);
-        if (!empty($prefix)) {
-            $unit['namespace'] = "$prefix$namespace";
-        }
+        //list($namespace, $prefix) = self::findClass('\\'.$unit['namespace']);
+        //if (!empty($prefix)) {
+        //    $unit['namespace'] = "$prefix$namespace";
+        //}
 
         $package = $unit['namespace'] . '\\' . $unit['package'];
         if (   false === is_subclass_of($package, 'Tms\\PackageInterface')
@@ -455,6 +453,9 @@ abstract class Base
         if (preg_match("/^((.+)~)?(.+?)(:+(.+))?$/", $mode, $match)) {
 
             $namespace = self::upperCamelCase($match[2]);
+
+            // inarray paths
+            //
             $package = $match[3];
 
             if (isset($match[5])) {
@@ -643,21 +644,23 @@ abstract class Base
             $cache_dir = false;
         }
 
-        $plugins = $this->cnf('plugins:paths');
-        $paths = [];
-        foreach ((array)$plugins as $plugin) {
-            $include_path = explode(PATH_SEPARATOR, ini_get('include_path'));
-            foreach ($include_path as $dir) {
-                if (is_dir("$dir/$plugin/".View::TEMPLATE_DIR_NAME)) {
-                    $paths[] = realpath("$dir/$plugin/".View::TEMPLATE_DIR_NAME);
-                }
+        $paths = [dirname(__DIR__) . '/' . View::TEMPLATE_DIR_NAME];
+
+        $application_name = $this->currentApplication();
+        if (!empty($application_name)) {
+            $currentAppName = Common::classFromApplicationName($application_name);
+            array_unshift($paths, $currentAppName::templateDir());
+        }
+
+        $plugins = array_reverse(array_unique((array)$this->cnf('plugins:paths')));
+        foreach ($plugins as $plugin) {
+            $class = "\\plugin\\$plugin";
+            if (class_exists($class) && method_exists($class, 'extendTemplateDir')) {
+                array_unshift($paths, $class::extendTemplateDir());
             }
         }
 
-        $path = \P5\Auto\Loader::convertNameToPath(Common::classFromApplicationName($this->currentApplication()), true);
-        $paths[] = realpath(dirname($path) . "/" . View::TEMPLATE_DIR_NAME);
-
-        return new View($paths, $debug, $cache_dir);
+        return new View(array_filter($paths), $debug, $cache_dir);
     }
 
     /**
@@ -687,14 +690,8 @@ abstract class Base
         $plugins = array_unique((array)$this->cnf('plugins:paths'));
         $result = [];
         foreach ($plugins as $plugin) {
-            $class = "\\$plugin";
-            if (!class_exists($class)) {
-                list($className, $prefix) = self::findClass($class);
-                if (!empty($className)) {
-                    $class = "\\$prefix$class";
-                }
-            }
-            if (method_exists($class, $function)) {
+            $class = "\\plugin\\$plugin";
+            if (class_exists($class) && method_exists($class, $function)) {
                 $inst = new $class($this);
                 $result[$plugin] = call_user_func_array([$inst, $function], $arguments);
             }
@@ -735,18 +732,18 @@ abstract class Base
         return \P5\Environment::server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest';
     }
 
-    public static function findClass($class)
-    {
-        $className = null;
-        $namespace = null;
-        $prefixes = \P5\Auto\Loader::getIgnoreNameSpaceToPath();
-        foreach ($prefixes as $prefix) {
-            if (class_exists("\\$prefix$class")) {
-                $className = $class;
-                $namespace = $prefix;
-                break;
-            }
-        }
-        return [$className, $namespace];
-    }
+    //public static function findClass($class)
+    //{
+    //    $className = null;
+    //    $namespace = null;
+    //    $prefixes = \P5\Auto\Loader::getIgnoreNameSpaceToPath();
+    //    foreach ($prefixes as $prefix) {
+    //        if (class_exists("\\$prefix$class")) {
+    //            $className = $class;
+    //            $namespace = $prefix;
+    //            break;
+    //        }
+    //    }
+    //    return [$className, $namespace];
+    //}
 }
