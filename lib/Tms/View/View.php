@@ -102,18 +102,18 @@ class View implements ViewInterface
 
     public function resetEngine()
     {
-        $this->loader = new \Twig_Loader_Filesystem($this->template_dir);
-        $this->engine = new \Twig_Environment($this->loader, $this->context);
+        $this->loader = new \Twig\Loader\FilesystemLoader($this->template_dir);
+        $this->engine = new \Twig\Environment($this->loader, $this->context);
 
         if ($this->context['debug']) {
-            $this->engine->addExtension(new \Twig_Extension_Debug());
+            $this->engine->addExtension(new \Twig\Extension\DebugExtension());
         }
 
         // Markdown Extension
         $markdown = new \cebe\markdown\GithubMarkdown();
         $markdown->enableNewlines = true;
         $this->engine->addExtension(new View\Markdown\Extension($markdown));
-        $this->engine->addExtension(new \Twig_Extension_StringLoader());
+        $this->engine->addExtension(new \Twig\Extension\StringLoaderExtension());
     }
 
     /**
@@ -161,7 +161,7 @@ class View implements ViewInterface
             $template = $this->template_name;
         }
         if ($load_string) {
-            $this->loader = new \Twig_Loader_Array([$this->template_name => $template]);
+            $this->loader = new \Twig\Loader\ArrayLoader([$this->template_name => $template]);
             $template = $this->template_name;
             $this->engine->setLoader($this->loader);
         }
@@ -201,7 +201,7 @@ class View implements ViewInterface
      */
     public function getPaths()
     {
-        if (!is_null($this->loader) && get_class($this->loader) === 'Twig_Loader_Filesystem') {
+        if (!is_null($this->loader) && get_class($this->loader) === 'Twig\\Loader\\FilesystemLoader') {
             return $this->engine->getLoader()->getPaths();
         }
     }
@@ -235,7 +235,7 @@ class View implements ViewInterface
             }
         }
         $this->template_dir = $paths;
-        if (!is_null($this->loader) && get_class($this->loader) === 'Twig_Loader_Filesystem') {
+        if (!is_null($this->loader) && get_class($this->loader) === 'Twig\\Loader\\FilesystemLoader') {
             $this->loader->setPaths($this->template_dir);
         }
     }
@@ -249,7 +249,7 @@ class View implements ViewInterface
     {
         if (!empty($path)
             && !is_null($this->loader)
-            && get_class($this->loader) === 'Twig_Loader_Filesystem'
+            && get_class($this->loader) === 'Twig\\Loader\\FilesystemLoader'
         ) {
             $this->engine->getLoader()->addPath($path);
         }
@@ -262,7 +262,7 @@ class View implements ViewInterface
      */
     public function prependPath($path)
     {
-        if (!is_null($this->loader) && get_class($this->loader) === 'Twig_Loader_Filesystem') {
+        if (!is_null($this->loader) && get_class($this->loader) === 'Twig\\Loader\\FilesystemLoader') {
             $this->engine->getLoader()->prependPath($path);
         }
     }
