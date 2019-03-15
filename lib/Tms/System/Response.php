@@ -127,10 +127,7 @@ class Response extends \Tms\System
 
         $n = 0;
         foreach ($include_path as $path) {
-            if (!preg_match('/^.+\/plugins$/', $path)) {
-                continue;
-            }
-            $finds = glob("$path/*/" . self::CLASS_PATH);
+            $finds = glob("$path/plugin/*/" . self::CLASS_PATH);
             foreach ($finds as $find) {
                 $name = str_replace("$path", '', $find);
                 if (in_array($name, $exists)) {

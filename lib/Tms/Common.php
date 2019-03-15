@@ -55,11 +55,16 @@ abstract class Common
             throw new \ErrorException('No such application');
         }
 
+        $this->setCurrentApplication();
+
+        $this->pager = new \P5\Pagination();
+    }
+
+    public function setCurrentApplication()
+    {
         if (!is_null($this->session) && method_exists($this, 'packageName')) {
             $this->session->param('application_name', $this->packageName());
         }
-
-        $this->pager = new \P5\Pagination();
     }
 
     /**
