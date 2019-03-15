@@ -90,6 +90,19 @@ class Db extends \P5\Db
     }
 
     /**
+     * Execute SQL.
+     *
+     * @param string $sql
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function query($sql, $options = null)
+    {
+        return parent::query(str_replace('table::', $this->prefix, $sql), $options);
+    }
+
+    /**
      * exec insert SQL.
      *
      * @param string $table
