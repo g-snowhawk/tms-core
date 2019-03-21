@@ -36,7 +36,7 @@
               <li id="nav-application"><a href="?mode=user.response">■</a>
                 <ul>
             {% endif %}
-              <li><a href="?mode=system.response:change&amp;app={{ item.code }}">{{ item.name }}</a></li>
+              <li><a href="?mode=system.response:change&amp;app={{ item.code }}">{{ item.label ? item.label : item.name }}</a></li>
             {% if loop.last %}
                 </ul>
               </li>

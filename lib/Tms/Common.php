@@ -248,6 +248,7 @@ abstract class Common
                 $nav[] = [
                     'code' => $class::packageName(),
                     'name' => $class::applicationName(),
+                    'label' => $class::applicationLabel(),
                     'class' => $class,
                 ];
             }

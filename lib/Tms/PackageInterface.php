@@ -59,6 +59,24 @@ interface PackageInterface
     public static function packageName();
 
     /**
+     * Application name
+     *
+     * @final
+     *
+     * @return string
+     */
+    public static function applicationName();
+
+    /**
+     * Application label
+     *
+     * @final
+     *
+     * @return string
+     */
+    public static function applicationLabel();
+
+    /**
      * Return to package version.
      *
      * @final
