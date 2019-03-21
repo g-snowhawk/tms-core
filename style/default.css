@@ -27,11 +27,22 @@ main {
 template {
   display: none;
 }
-label {
-  -moz-user-select: none;
+* {
   -ms-user-select: none;
+  -moz-user-select: none;
   -webkit-user-select: none;
   user-select: none;
+}
+input:not([type=button]),
+input:not([type=checkbox]),
+input:not([type=radio]),
+input:not([type=reset]),
+input:not([type=submit]),
+textarea {
+  -ms-user-select: text;
+  -moz-user-select: text;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 ::-webkit-input-placeholder { color: #abc; }
@@ -53,6 +64,7 @@ label {
 a.button,
 button,
 input[type="button"],
+input[type="reset"],
 input[type="submit"] {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -79,6 +91,8 @@ button:focus,
 button:hover,
 input[type="button"]:focus,
 input[type="button"]:hover,
+input[type="reset"]:focus,
+input[type="reset"]:hover,
 input[type="submit"]:focus,
 input[type="submit"]:hover {
   background: #69c;
@@ -88,6 +102,7 @@ input[type="submit"]:hover {
 a.button:disabled,
 button:disabled,
 input[type="button"]:disabled,
+input[type="reset"]:disabled,
 input[type="submit"]:disabled {
   background: #ccc;
   border-color: #999;
@@ -912,13 +927,9 @@ a.small-button:hover {
   position: relative;
 }
 .fieldset .select-box .select-text {
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -webkit-user-select: none;
   cursor: default;
   font-size: .9rem;
   padding: 0 4px;
-  user-select: none;
 }
 .fieldset .select-box .select-menu {
   background: #fff;
@@ -982,9 +993,6 @@ a.small-button:hover {
   padding: 0;
 }
 .multi-selector label span {
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -webkit-user-select: none;
   border: 1px solid #ccc;
   border-radius: 0;
   cursor: pointer;
@@ -993,7 +1001,6 @@ a.small-button:hover {
   font-size: .8rem;
   line-height: 1.8em;
   text-align: center;
-  user-select: none;
   width: 1.8em;
 }
 .multi-selector.warn label span {
@@ -1223,12 +1230,10 @@ section.relational-list li > div.line a > span {
   width: 50%;
 }
 section.relational-list li > div.line label {
-  -webkit-user-select: none;
   color: #f00;
   cursor: pointer;
   line-height: 1;
   padding: 12px 8px;
-  user-select: none;
 }
 section.relational-list li > div.line label input {
   display: none;
@@ -1271,7 +1276,6 @@ section.relational-list p {
   padding: .5em 1em;
   text-decoration: none;
   transition: background-color .8s ease, padding .5s ease-out;
-  user-select: none;
 }
 .function-key a:hover {
   background-color: rgba(0,0,0,.25);
