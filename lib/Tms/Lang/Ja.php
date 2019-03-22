@@ -75,7 +75,4 @@ class Ja extends \P5\Lang
      * Ttitles.
      */
     protected $TITLE_SIGNIN = 'ログイン認証';
-
-    protected $CONFIRM_REASSEMBLY = 'サイトを再構築します。この処理は時間のかかることがあります';
-    protected $SUCCESS_REASSEMBLY = '再構築を完了しました';
 }

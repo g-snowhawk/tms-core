@@ -1906,6 +1906,38 @@ div.alert section h2 {
   width: 100%;
 }
 
+#progress1 {
+  animation: fadein .3s linear 0s forwards;
+  background: rgba(0,0,0,.3);
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 50;
+}
+#progress1 > div {
+  animation: rotation 2s linear 0s infinite;
+  background: transparent url(progress1.png) no-repeat 50% 50%;
+  background-size: 100% 100%;
+  bottom: 0;
+  height: 60px;
+  left: 0;
+  margin: auto;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 60px;
+}
+@keyframes fadein {
+    0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+  100% { transform: rotate(180deg); }
+}
+
 #user-reissued textarea[name=mail_body] {
   height: 300px;
 }
