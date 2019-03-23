@@ -74,8 +74,17 @@ class App extends Base
         // CLI mode
         if (php_sapi_name() === 'cli') {
             global $argv;
-            $options = getopt('m:p::g::',['mode:','post::','get::']);
+            $options = getopt('m:',['mode:','params:','method:']);
             $mode = (isset($options['m'])) ? $options['m'] : $options['mode'];
+            if (isset($options['params'])) {
+                parse_str($options['params'], $post);
+                foreach ($post as $key => $value) {
+                    $this->request->param($key, $value);
+                }
+            }
+            if (isset($options['method'])) {
+                $this->request->setRequestMethodViaCli($options['method']);
+            }
             $args_cli = [];
             foreach ($argv as $n => $arg) {
                 if ($n === 0 || preg_match('/^-+/', $arg) || in_array($arg, $options)) {

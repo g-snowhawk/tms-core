@@ -129,6 +129,14 @@ abstract class Base
         $domain = (string)$this->cnf('session:domain');
         $secure = (\P5\Environment::server('https') === 'on');
         $httponly = true;
+
+        if (php_sapi_name() === 'cli') {
+            $options = getopt('',['phpsessid:']);
+            if (isset($options['phpsessid'])) {
+                session_id($options['phpsessid']);
+            }
+        }
+
         $this->session = new \P5\Session('nocache', $save_path, 0, $path, $domain, $secure, $httponly);
         $name = $this->cnf('session:name');
         if (empty($name)) {
