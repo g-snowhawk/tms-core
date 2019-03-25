@@ -140,10 +140,10 @@ class Response extends \Tms\System
                 $class = str_replace(self::CLASS_PATH, self::CLASS_NAME, $class);
 
                 if (!class_exists($class)) {
-                    list($className, $prefix) = \Tms\Base::findClass($class);
-                    if (!empty($className)) {
-                        $class = "\\$prefix$class";
-                    }
+                    //list($className, $prefix) = \Tms\Base::findClass($class);
+                    //if (!empty($className)) {
+                    //    $class = "\\$prefix$class";
+                    //}
                 }
 
                 $namespace = $class::getNameSpace();

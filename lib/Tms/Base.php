@@ -698,7 +698,17 @@ abstract class Base
         $plugins = array_unique((array)$this->cnf('plugins:paths'));
         $result = [];
         foreach ($plugins as $plugin) {
-            $class = "\\plugin\\$plugin";
+            $class = "\\plugin\\" . preg_replace('/^\\\?plugin\\\/', '', $plugin);
+
+            if (!class_exists($class)) {
+                $path = preg_replace('/^\//', '', str_replace('\\', '/', $class));
+                if (false !== ($filename = stream_resolve_include_path($path . '.php'))
+                    || false !== ($filename = stream_resolve_include_path("$path/" . basename($path) . '.php'))
+                ) {
+                    require_once $filename;
+                }
+            }
+
             if (class_exists($class) && method_exists($class, $function)) {
                 $inst = new $class($this);
                 $result[$plugin] = call_user_func_array([$inst, $function], $arguments);

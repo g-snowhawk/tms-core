@@ -89,12 +89,13 @@ class Receive extends Response
         foreach ($paths as $classfile) {
             include_once($classfile);
             $checksum = md5_file($classfile);
-            if (preg_match("/plugins\/(.+)\/" . preg_quote(self::CLASS_FILE, '/') . "$/", $classfile, $match)) {
+            if (preg_match("/plugin\/(.+)\/" . preg_quote(self::CLASS_FILE, '/') . "$/", $classfile, $match)) {
                 $class = str_replace(
                     self::CLASS_PATH,
                     self::CLASS_NAME,
                     strtr($match[1], '/', '\\')
                 );
+                $class = '\\plugin\\' . $class;
                 $namespace = $class::getNameSpace();
                 $current_version = $this->getPackageVersion($namespace);
                 if (empty($current_version)) {
