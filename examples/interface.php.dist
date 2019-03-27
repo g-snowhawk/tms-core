@@ -2,6 +2,12 @@
 /* ========================================================================== */
 
 /*
+ * Language setting
+ */
+mb_internal_encoding('UTF-8');
+setlocale(LC_ALL, 'ja_JP.UTF-8');
+
+/*
  * Switch Debugmode
  *
  * - disable : 0
@@ -51,4 +57,4 @@ define('AUTOLOADER', 'path/to/autoload.php');
 
 /* ========================================================================== */
 
-mb_internal_encoding('UTF-8');if(defined('INCLUDE_PATH')){ini_set('include_path',implode(PATH_SEPARATOR,INCLUDE_PATH).PATH_SEPARATOR.ini_get('include_path'));}require_once(AUTOLOADER);$inst=new Tms\App(ERROR_DOCUMENT);$inst->run();
+if(defined('INCLUDE_PATH')){ini_set('include_path',implode(PATH_SEPARATOR,INCLUDE_PATH).PATH_SEPARATOR.ini_get('include_path'));}require_once(AUTOLOADER);$inst=new Tms\App(ERROR_DOCUMENT);$inst->run();
