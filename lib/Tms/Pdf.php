@@ -233,4 +233,9 @@ class Pdf
     {
         $this->engine->SetProtection($permissions, $user_password, $master_password, $mode, $pubkeys);
     }
+
+    public function signing($certificate, $privatekey, $privatekey_password, $extracerts = '', $type = 2, array $info = [])
+    {
+        $this->engine->setSignature($certificate, $privatekey, $privatekey_password, $extracerts, $type, $info);
+    }
 }
