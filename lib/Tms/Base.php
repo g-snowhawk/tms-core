@@ -271,6 +271,7 @@ abstract class Base
                     return true;
                 } elseif ($this->session->param('uname') === 'guest' && empty($uname)) {
                     $this->session->clear('authorized');
+                    $this->session->clear('securet');
                 }
             }
             $this->view->bind(

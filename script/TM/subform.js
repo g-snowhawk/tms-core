@@ -291,6 +291,10 @@ Subform.prototype.submit = function(form) {
                 return;
             }
             instance.posted(json, form);
+            if (instance.finally) {
+                TM.apply(instance.finally.function, instance.finally.arguments);
+                instance.finally = undefined;
+            }
         } else {
             // TODO: add error handling
             console.log(this.responseText);
