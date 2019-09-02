@@ -210,7 +210,8 @@ abstract class Common
             if (!isset($post[$field])) {
                 continue;
             }
-            $data[$field] = (empty($post[$field])) ? null : $post[$field];
+            $data[$field] = (empty($post[$field]) && $post[$field] !== '0')
+                ? null : $post[$field];
 
             if (is_array($data[$field])) {
                 switch ($cast_string) {
