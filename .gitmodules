@@ -1,4 +1,0 @@
-[submodule "lib/P5"]
-	path = lib/P5
-	url = https://github.com/g-snowhawk/P5.git
-    branch = master
