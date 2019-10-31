@@ -159,7 +159,7 @@ class Db extends \P5\Db
      *
      * @return mixed
      */
-    public function delete($table, $statement = '', $options)
+    public function delete($table, $statement = '', $options = null)
     {
         return parent::delete(self::TABLE($table), $statement, $options);
     }
