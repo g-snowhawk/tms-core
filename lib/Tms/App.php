@@ -54,7 +54,7 @@ class App extends Base
         // Set system language and debug mode.
         try {
             parent::__construct();
-            $_ENV['P5_LOCALE'] = ucfirst(strtolower($this->cnf('global:system_lang')));
+            putenv("P5_LOCALE=" . ucfirst(strtolower($this->cnf('global:system_lang'))));
         } catch (\ErrorException $e) {
             // Not yet system installed
             if ($e->getCode() == 90990 && preg_match("/Not found configurarion file\./", $e->getMessage())) {

@@ -58,7 +58,7 @@ class Setup
         if (defined('CONFIG_FILE') && !empty(CONFIG_FILE)) {
             $this->config = CONFIG_FILE;
         }
-        $_ENV['P5_LOCALE'] = ucfirst(strtolower('ja'));
+        putenv("P5_LOCALE=" . ucfirst(strtolower('ja')));
 
         $this->request = new \P5\Html\Form();
         $this->session = new \P5\Session('nocache');
