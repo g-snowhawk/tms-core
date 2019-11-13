@@ -104,6 +104,8 @@ abstract class Base
         $this->env = new \P5\Environment();
         $this->request = new \P5\Html\Form();
 
+        Plugin::register();
+
         if (!is_null($this->cnf('database:db_host'))) {
             $this->db = new Db(
                 $this->cnf('database:db_driver'),
