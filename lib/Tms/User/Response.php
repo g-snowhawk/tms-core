@@ -67,7 +67,7 @@ class Response extends Unauth
             $this->editAlias();
         }
 
-        $aliases = $this->db->select('id,fullname,email,uname','user','WHERE alias=?',[$this->uid]);
+        $aliases = $this->db->select('id,fullname,fullname_rubi,email,uname','user','WHERE alias=?',[$this->uid]);
         $this->view->bind('aliases', $aliases);
 
         $this->edit(true);
@@ -88,7 +88,7 @@ class Response extends Unauth
             $post = $this->request->post();
         } else {
             $post = $this->db->get(
-                'id, admin, fullname, company, email, url, zip, state, city, town,
+                'id, admin, fullname, fullname_rubi, company, email, url, zip, state, city, town,
                  address1, address2, tel, fax, free1, free2, free3, create_date, modify_date',
                 'user', 'id = ?', [$this->request->param('id')]
             );
@@ -232,7 +232,7 @@ class Response extends Unauth
             $post = $this->request->post();
         } else {
             $post = $this->db->get(
-                'id, admin, fullname, email, url, zip, state, city, town,
+                'id, admin, fullname, fullname_rubi, email, url, zip, state, city, town,
                  address1, address2, tel, fax, create_date, modify_date',
                 'user', 'id = ?', [$this->request->param('id')]
             );
@@ -261,7 +261,7 @@ class Response extends Unauth
             $post = $this->request->post();
         } else {
             $post = $this->db->get(
-                'id, admin, fullname, email, url, zip, state, city, town,
+                'id, admin, fullname ,fullname_rubi, email, url, zip, state, city, town,
                  address1, address2, tel, fax, create_date, modify_date',
                 'user', 'id = ?', [$this->request->param('id')]
             );
@@ -282,7 +282,7 @@ class Response extends Unauth
 
     public function aliasList()
     {
-        $aliases = $this->db->select('id,fullname,email,uname','user','WHERE alias=?',[$this->uid]);
+        $aliases = $this->db->select('id,fullname,fullname_rubi,email,uname','user','WHERE alias=?',[$this->uid]);
         $this->view->bind('aliases', $aliases);
 
         $json = [

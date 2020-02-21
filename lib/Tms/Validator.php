@@ -131,6 +131,9 @@ class Validator
         $args = $this->_checker[$key]['args'];
 
         switch ($type) {
+            case 'blank':
+                $result = empty($value) && $value === '0';
+                break;
             case 'date_format':
                 if (preg_match('/^(([0-9]{2})?([0-9]{2}))[\/\-\.]([0-9]{1,2})[\/\-\.]([0-9]{1,2})$/', $value, $match)) {
                     $year = $match[1];

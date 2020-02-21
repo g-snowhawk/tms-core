@@ -19,6 +19,10 @@
       <label for="fullname"><sup class="necessary">(必須)</sup>フルネーム</label>
       <input type="text" name="fullname" id="fullname" value="{{ post.fullname }}" data-validate="necessary">
     </div>
+    <div class="fieldset{% if err.vl_fullname_rubi == 1 %} invalid{% endif %}">
+      <label for="fullname">フリガナ</label>
+      <input type="text" name="fullname_rubi" id="fullname_rubi" value="{{ post.fullname_rubi }}">
+    </div>
     <div class="fieldset">
       <label for="company">会社名</label>
       <input type="text" name="company" id="company" value="{{ post.company }}">

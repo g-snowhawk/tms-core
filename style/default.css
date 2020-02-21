@@ -836,9 +836,15 @@ a.small-button:hover {
   padding: 4px 28px 4px 4px;
   width: auto;
 }
+.fieldset select.short,
 .fieldset input.short {
   min-width: 3rem;
   width: 15%;
+}
+.fieldset select.harf,
+.fieldset input.harf {
+  min-width: 6rem;
+  width: 30%;
 }
 .fieldset .inner-flex {
   border: 1px solid #ccc;

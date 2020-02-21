@@ -17,9 +17,9 @@
         }
     ],
     "require": {
-        "php": ">=5.6.0",
-        "setasign/fpdi": "*",
-        "tecnickcom/tcpdf": "*",
+        "php": ">=7.2.0",
+        "setasign/fpdi": "^2.1",
+        "tecnickcom/tcpdf": "^6.3",
         "twig/twig": "^2.7",
         "cebe/markdown": "*",
         "g-snowhawk/p5": "dev-master"

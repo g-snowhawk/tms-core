@@ -24,11 +24,12 @@ use setasign\Fpdi\TcpdfFpdi;
 class Pdf
 {
     private $engine;
+    private $template_paths = [];
 
     /**
      * Object Constructor.
      */
-    public function __construct()
+    public function __construct(array $paths = [])
     {
         $this->engine = new TcpdfFpdi();
 
@@ -40,6 +41,8 @@ class Pdf
 
         // Enbed the font subset
         $this->engine->setFontSubsetting(true);
+
+        $this->template_paths = $paths;
     }
 
     public function handler(): object
@@ -49,14 +52,38 @@ class Pdf
 
     public function loadTemplate($path): int
     {
+        if (!file_exists($path)) {
+            foreach ($this->template_paths as $dir) {
+                $find_path = "{$dir}/{$path}";
+                if (file_exists($find_path)) {
+                    $path = $find_path;
+                    break;
+                }
+            }
+        }
         return $this->engine->setSourceFile($path);
     }
 
-    public function addPageFromTemplate($page = 1): array
+    public function addPageFromTemplate($page = 1, $orientation = 'P'): array
     {
-        $this->engine->addPage();
+        $this->engine->addPage($orientation);
         $imported_page = $this->engine->importPage($page);
         return $this->engine->useTemplate($imported_page);
+    }
+
+    public function movePage($from, $to)
+    {
+        return $this->engine->movePage($from, $to);
+    }
+
+    public function setPage($at, $flg)
+    {
+        return $this->engine->setPage($at, $flg);
+    }
+
+    public function output($name, $dest = 'I')
+    {
+        $this->engine->Output($name, $dest);
     }
 
     public function saveFileAs($path): bool
@@ -151,9 +178,13 @@ class Pdf
                 $value = date($property['dateformat'], $timestamp);
             }
 
-            $value_str = $property['prefix'] . $value . $property['suffix'];
+            $prefix = (isset($property['prefix'])) ? $property['prefix'] : '';
+            $suffix = (isset($property['suffix'])) ? $property['suffix'] : '';
+            $value_str = $prefix . $value . $suffix;
 
-            $this->engine->SetFont($property['font'], $property['style'], $property['size']);
+            if (isset($property['font'])) {
+                $this->engine->SetFont($property['font'], $property['style'], $property['size']);
+            }
 
             $C = isset($property['color'][0]) ? $property['color'][0] :  0;
             $M = isset($property['color'][1]) ? $property['color'][1] : -1;
@@ -167,6 +198,15 @@ class Pdf
             switch ($property['type']) {
                 case 'Cell' :
                     $this->engine->Cell($property['width'], $property['height'], $value_str, 0, 0, $property['align'], 0, '', 1, $property['flg']);
+                    break;
+                case 'Circle' :
+                    $this->engine->Circle($property['x'], $property['y'], $property['r'], $property['astart'], $property['angend'], $property['style'], $property['line_style']);
+                    break;
+                case 'Ellipse' :
+                    $this->engine->Ellipse($property['x'], $property['y'], $property['rx'], $property['ry'], $property['angle'], $property['astart'], $property['afinish'], $property['style'], $property['line_style']);
+                    break;
+                case 'Line' :
+                    $this->engine->Line($property['x'],$property['y'],$property['x2'],$property['y2'],$property['style']);
                     break;
                 case 'MultiCell' :
                     $this->engine->MultiCell($property['width'], 0, $value_str, 0, $property['align'], 0, 1, '', '', $property['flg'], 0, false, false, $property['height']);
