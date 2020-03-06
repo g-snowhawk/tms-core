@@ -150,6 +150,11 @@ class Db extends \P5\Db
         return parent::replace(self::TABLE($table), $data, $unique, $raws);
     }
 
+    public function merge($table, array $data, array $skip = [], $key_name = 'PRIMARY')
+    {
+        return parent::merge(self::TABLE($table), $data, $skip, self::TABLE($key_name));
+    }
+
     /**
      * exec delete SQL.
      *
