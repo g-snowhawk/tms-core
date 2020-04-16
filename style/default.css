@@ -553,7 +553,8 @@ a.small-button:hover {
 .explorer-list table tbody tr:hover {
   background-color: #ffd;
 }
-.explorer-list table input[name="delete"] {
+.explorer-list table input[name="delete"],
+.explorer-list table input.invisible {
   display: none;
 }
 .explorer-list table tbody td.link > a,

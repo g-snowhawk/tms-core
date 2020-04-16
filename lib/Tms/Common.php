@@ -583,4 +583,22 @@ abstract class Common
         $separator = (empty($origin)) ? '' : PHP_EOL;
         $this->session->param('messages', $origin.$separator.$message);
     }
+
+    protected function intoTrash($table_name, $identifier, array $options = [], $inout = '1'): bool 
+    {
+        $data = ['trash' => $inout];
+        $statement = 'id = ?';
+        $replaces = [$identifier];
+        if (isset($options["statement"])) {
+            $statement = $options["statement"];
+        }
+        if (isset($options["replaces"])) {
+            $replaces = $options["replaces"];
+        }
+        if (isset($options["otherdata"])) {
+            $data = array_merge($data, $options["otherdata"]);
+        }
+
+        return $this->db->update($table_name, $data, $statement, $replaces);
+    }
 }
