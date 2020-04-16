@@ -477,7 +477,7 @@ class User extends \Tms\Common
 
     public function isAdmin()
     {
-        return $this->userinfo['admin'] > 0;
+        return (isset($this->userinfo['admin'])) ? $this->userinfo['admin'] > 0 : false;
     }
 
     public function isRoot()
