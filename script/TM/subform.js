@@ -125,16 +125,6 @@ Subform.prototype.create = function(json) {
     if (this.initForm(json.response)) {
         return;
     }
-    /*
-    var container = document.getElementById(this.containerID);
-    if (container) {
-        container.innerHTML = json.response;
-        this.setListenerButtons();
-        this.setListenerForms(container);
-        this.subFormSize = (this.position !== 'bottom') ? container.offsetWidth : container.offsetHeight;
-        return;
-    }
-    */
 
     sealed = document.body.appendChild(document.createElement('div'));
     sealed.id = this.sealedID;
@@ -149,6 +139,21 @@ Subform.prototype.create = function(json) {
         this.cnTransition = 'trans-' + this.position;
     }
     container.classList.add(this.position);
+
+    const hidden = document.createElement('input');
+    hidden.name = 'submitter';
+    hidden.type = 'hidden';
+    form.appendChild(hidden);
+
+    let submit = form.querySelectorAll('*[type=submit]');
+    submit.forEach((element) => {
+        element.addEventListener('click', (event) => {
+            const element = event.target;
+            if (element.form.submitter) {
+                element.form.submitter.value = element.name;
+            }
+        });
+    });
 
     this.setListenerForms(container);
 
@@ -223,6 +228,8 @@ Subform.prototype.posted = function(json, form) {
             var args = json.arguments ? json.arguments : [];
             TM.apply(json.response.source, args);
             break;
+        case 'close':
+            return;
         case 'redirect':
             location.href = json.response.source;
             break;

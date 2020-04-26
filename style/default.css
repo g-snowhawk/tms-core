@@ -1712,14 +1712,22 @@ div.alert section h2 {
   transition: bottom .5s ease;
 }
 #subform-container #cancel-subform a {
-  color: #36c;
+  background: transparent url(icon_close.png) no-repeat 50% 50%;
+  background-size: contain;
+  color: transparent;
   display: inline-block;
-  font-size: .8rem;
-  padding: 8px 12px;
+  font-size: 0em;
+  height: 20px;
+  margin: 8px;
+  padding: 0;
   text-decoration: none;
+  vertical-align: top;
+  width: 20px;
 }
 #subform-container.bottom #cancel-subform {
-  text-align: right;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 #subform-container form {
   box-sizing: border-box;
@@ -1759,7 +1767,14 @@ div.alert section h2 {
 }
 #subform-container form h1 {
   font-size: 1.4rem;
-  margin: 0 0 1em;
+  margin: 1em 0 .5em;
+}
+#subform-container .naked label {
+  font-size: .8rem;
+}
+#subform-container .naked input[type=checkbox],
+#subform-container .naked input[type=radio] {
+  margin-right: .4em;
 }
 #subform-container .fieldset {
   display: block;
