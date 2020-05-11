@@ -125,7 +125,7 @@
 
     {% if post.profile != 1 %}
       {% include 'user/permission.tpl' %}
-      {% set template = apps.currentApp() ~ "/permission.tpl" %}
+      {% set template = apps.currentApp('basename') ~ "/permission.tpl" %}
       {% if apps.view.exists(template) %} 
         {% include template %}
       {% endif %}

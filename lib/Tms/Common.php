@@ -258,9 +258,19 @@ abstract class Common
         return $nav;
     }
 
-    public function currentApp()
+    public function currentApp($type = null): string
     {
-        return $this->session->param('application_name');
+        $current_app = $this->session->param('application_name');
+        switch ($type) {
+        case 'basename':
+            if (false !== ($index = strpos($current_app,'#'))) {
+                $current_app = substr($current_app, $index + 1);
+            }
+            break;
+        default:
+            break;
+        }
+        return $current_app;
     }
 
     public function init()
@@ -308,7 +318,12 @@ abstract class Common
 
     public static function classFromApplicationName($application_name)
     {
-        return "\\Tms\\" . ucfirst(strtolower($application_name));
+        $namespace = 'Tms';
+        if (false !== ($index = strpos($application_name,'#'))) {
+            $namespace = substr($application_name, 0, $index);
+            $application_name = substr($application_name, $index + 1);
+        }
+        return "\\{$namespace}\\" . ucfirst(strtolower($application_name));
     }
 
     public function plugin()
@@ -600,5 +615,13 @@ abstract class Common
         }
 
         return $this->db->update($table_name, $data, $statement, $replaces);
+    }
+
+    static public function responseJson($json)
+    {
+        \P5\Http::nocache();
+        \P5\Http::responseHeader('Content-type','application/json');
+        echo json_encode($json);
+        exit;
     }
 }

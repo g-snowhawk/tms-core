@@ -9,6 +9,8 @@
 {% endif %}
 {% include 'header.tpl' with blocks %}
 
+{% set template_dir = apps.currentApp('basename') %}
+
 {% if messages is not empty %}
   <body data-loadmessage="{{ messages|url_encode }}">
 {% endif %}
@@ -19,7 +21,7 @@
           <span class="logo">Tak-Me <span>System</span></span>
           <a href="?mode=user.response.response:profile">ID: {{ apps.userinfo.uname }}</a>
           <ul>
-            {% set template = apps.currentApp ~ "/private_nav.tpl" %}
+            {% set template = template_dir ~ "/private_nav.tpl" %}
             {% if apps.view.exists(template) %} 
               {% include template %}
             {% endif %}
@@ -43,14 +45,14 @@
             {% endif %}
           {% endfor %}
         {% endif %}
-        {% set template = apps.currentApp ~ "/application_nav.tpl" %}
+        {% set template = template_dir ~ "/application_nav.tpl" %}
         {% if apps.view.exists(template) %} 
           {% include template %}
         {% endif %}
         {% if apps.hasPermission('system') %} 
           <li id="nav-system"><a href="?mode=user.response">システム管理</a>
             <ul>
-              {% set template = apps.currentApp() ~ "/system_nav.tpl" %}
+              {% set template = template_dir ~ "/system_nav.tpl" %}
               {% if apps.view.exists(template) %} 
                 {% include template %}
               {% endif %}

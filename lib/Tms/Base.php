@@ -421,7 +421,9 @@ abstract class Base
     {
         $unit = self::parseMode($mode);
         if (!empty($unit['namespace'])) {
-            if (in_array($unit['namespace'], $plugin_paths)) {
+            if (is_null($plugin_paths)) {
+                //
+            } elseif (in_array($unit['namespace'], $plugin_paths)) {
                 $unit['namespace'] = '\\plugin\\' . $unit['namespace'];
             } else {
                 throw new \ErrorException("{$unit['namespace']} is not enabled");
@@ -437,7 +439,9 @@ abstract class Base
         //}
 
         $package = $unit['namespace'] . '\\' . $unit['package'];
-        if (   false === is_subclass_of($package, 'Tms\\PackageInterface')
+        if (!class_exists($package)) {
+            throw new \ErrorException("Class `{$package}' is not found");
+        } elseif (   false === is_subclass_of($package, 'Tms\\PackageInterface')
             && false === is_a($package, 'Tms\\User\\Response', true)
             && false === is_a($package, 'Tms\\System\\Response', true)
             && false === is_a($package, 'Tms\\Plugin', true)
@@ -461,9 +465,13 @@ abstract class Base
         $package = $mode;
         $function = self::DEFAULT_METHOD;
         $arguments = null;
-        if (preg_match("/^((.+)~)?(.+?)(:+(.+))?$/", $mode, $match)) {
+        if (preg_match("/^((.+)[~#])?(.+?)(:+(.+))?$/", $mode, $match)) {
 
-            $namespace = self::upperCamelCase($match[2]);
+            $namespace = strtolower($match[2]);
+            $separator = substr($match[1], -1);
+            if ($separator === "~") {
+                $namespace = self::upperCamelCase($match[2]);
+            }
 
             // inarray paths
             //
@@ -483,6 +491,8 @@ abstract class Base
                 'function' => self::lowerCamelCase($function),
                 'arguments' => $arguments,
             ];
+
+            $mode['plugin'] = (substr($match[1], -1) === "~");
         } else {
             $mode = [
                 'namespace' => $namespace,
@@ -527,7 +537,7 @@ abstract class Base
     public function getMode()
     {
         $mode = $this->request->param('mode');
-        if (!$mode || !preg_match("/^([0-9a-z_\-]+~)?[0-9a-z\._\-]+(:[0-9a-z_\-]+)?(\(.*\))?$/i", $mode)) {
+        if (!$mode || !preg_match("/^([0-9a-z_\-]+[~#])?[0-9a-z\._\-]+(:[0-9a-z_\-]+)?(\(.*\))?$/i", $mode)) {
             $mode = $this->getDefaultMode();
         }
 
@@ -613,7 +623,7 @@ abstract class Base
             $tmp = explode(':', $mode);
             $mode = $tmp[0];
             $mode = explode('.', $mode);
-            if (count($mode) > 2) {
+            if (count($mode) > 2 || strpos($mode[0],'#') !== false) {
                 $this->session->param('application_name', $mode[0]);
             }
         }
@@ -660,7 +670,9 @@ abstract class Base
         $application_name = $this->currentApplication();
         if (!empty($application_name)) {
             $currentAppName = Common::classFromApplicationName($application_name);
-            array_unshift($paths, $currentAppName::templateDir());
+            if (class_exists($currentAppName) && method_exists($currentAppName, 'templateDir')) {
+                array_unshift($paths, $currentAppName::templateDir());
+            }
         }
 
         $plugins = array_reverse(array_unique((array)$this->cnf('plugins:paths')));

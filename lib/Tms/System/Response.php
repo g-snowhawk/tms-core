@@ -44,7 +44,7 @@ class Response extends \Tms\System
         $n = 0;
         $path = $this->app->cnf('global:data_dir') . '/apps';
 
-        $finds = glob("$path/Tms/*/" . self::CLASS_PATH);
+        $finds = glob("$path/*/*/" . self::CLASS_PATH);
         foreach ($finds as $find) {
             $name = str_replace("$path", '', $find);
             if (in_array($name, $exists)) {

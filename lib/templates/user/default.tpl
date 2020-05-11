@@ -47,7 +47,7 @@
           </tr>
         {% else %}
           <tr>
-            <td class="nowrap empty" colspan="4">ユーザーの登録がありません</td>
+            <td class="nowrap empty" colspan="5">ユーザーの登録がありません</td>
             <td></td>
             <td></td>
             <td></td>

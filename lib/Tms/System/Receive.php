@@ -32,7 +32,7 @@ class Receive extends Response
         foreach ($paths as $classfile) {
             include_once($classfile);
             $checksum = md5_file($classfile);
-            if (preg_match("/(Tms\/.+)\/" . preg_quote(self::CLASS_FILE, '/') . "$/", $classfile, $match)) {
+            if (preg_match("/((Tms|plusfive)\/.+)\/" . preg_quote(self::CLASS_FILE, '/') . "$/", $classfile, $match)) {
                 $class = str_replace(
                     self::CLASS_PATH,
                     self::CLASS_NAME,
