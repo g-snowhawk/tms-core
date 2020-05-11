@@ -258,7 +258,7 @@ abstract class Common
         return $nav;
     }
 
-    public function currentApp($type = null): string
+    public function currentApp($type = null): ?string
     {
         $current_app = $this->session->param('application_name');
         switch ($type) {
@@ -270,6 +270,7 @@ abstract class Common
         default:
             break;
         }
+
         return $current_app;
     }
 

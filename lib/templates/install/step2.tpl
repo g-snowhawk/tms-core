@@ -22,7 +22,7 @@
         <label for="db_driver">データベース</label>
         <select name="db_driver" id="db_driver">
           <option value="mysql"{% if post.db_driver == 'mysql' %} selected{% endif %}>MySQL</option>
-          <option value="pgsql"{% if post.db_driver == 'pgsql' %} selected{% endif %}>PostgreSQL</option>
+          <!--option value="pgsql"{% if post.db_driver == 'pgsql' %} selected{% endif %}>PostgreSQL</option-->
           <option value="sqlite"{% if post.db_driver == 'sqlite' %} selected{% endif %}>SQLite</option>
         </select>
       </div>

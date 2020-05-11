@@ -83,6 +83,18 @@ class Setup
                 'db_encoding' => $this->request->POST('db_encoding'),
                 'db_table_prefix' => $this->request->POST('db_table_prefix'),
             ];
+
+            if ($this->cnf['database']['db_driver'] === 'sqlite') {
+                $paths = array_filter(array_values([
+                    $this->cnf['global']['data_dir'],
+                    $this->cnf['database']['db_host'],
+                ]));
+                $dbfile = implode(DIRECTORY_SEPARATOR, $paths);
+                if (!file_exists($dbfile)) {
+                    mkdir($dbfile, 0777, true);
+                }
+                $this->cnf['database']['db_host'] = $dbfile;
+            }
         }
 
         if (isset($this->cnf['database'])) {

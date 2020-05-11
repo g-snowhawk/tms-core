@@ -1,20 +1,16 @@
-
--- SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT=0;
-START TRANSACTION;
-SET time_zone = "+00:00";
+BEGIN;
 
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `TMS_user`;
 CREATE TABLE `TMS_user` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `alias` int(11) unsigned DEFAULT NULL,
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `alias` int(11) DEFAULT NULL,
   `uname` varchar(32) NOT NULL,
   `email` varchar(255) DEFAULT NULL,
   `admin` int(11) DEFAULT '0',
   `upass` text,
-  `pw_type` enum('irreversible','reversible','temporary'),
+  `pw_type` text,
   `pw_expire` datetime DEFAULT NULL,
   `company` varchar(255) DEFAULT NULL,
   `division` varchar(255) DEFAULT NULL,
@@ -41,40 +37,39 @@ CREATE TABLE `TMS_user` (
   `free3` text,
   `create_date` datetime NOT NULL,
   `modify_date` datetime DEFAULT NULL,
-  `lft` double unsigned DEFAULT '0',
-  `rgt` double unsigned DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uname` (`uname`),
-  UNIQUE KEY `email` (`email`,`admin`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `lft` double DEFAULT '0',
+  `rgt` double DEFAULT '0',
+  UNIQUE (`uname`),
+  UNIQUE (`email`,`admin`),
+  CHECK (pw_type = 'irreversible' OR pw_type = 'reversible' OR pw_type = 'temporary')
+);
 
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `TMS_user_preference`;
 CREATE TABLE `TMS_user_preference` (
-  `userkey` int(11) unsigned NOT NULL DEFAULT '0',
+  `userkey` int(11) NOT NULL DEFAULT '0',
   `section` varchar(32) NOT NULL DEFAULT '',
   `config` varchar(32) NOT NULL DEFAULT '',
   `value` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`userkey`,`section`,`config`),
-  KEY `TMS_user_preference_ibfk_1` (`userkey`),
-  CONSTRAINT `TMS_user_preference_ibfk_1` FOREIGN KEY (`userkey`) REFERENCES `TMS_user` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  FOREIGN KEY (`userkey`) REFERENCES `TMS_user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
 
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `TMS_permission`;
 CREATE TABLE `TMS_permission` (
-  `userkey` int(11) unsigned NOT NULL,
-  `filter1` int(11) unsigned NOT NULL DEFAULT '0',
-  `filter2` int(11) unsigned NOT NULL DEFAULT '0',
+  `userkey` int(11) NOT NULL,
+  `filter1` int(11) NOT NULL DEFAULT '0',
+  `filter2` int(11) NOT NULL DEFAULT '0',
   `application` varchar(32) NOT NULL DEFAULT '',
   `class` varchar(255) NOT NULL DEFAULT '',
   `type` varchar(255) NOT NULL DEFAULT '',
-  `priv` enum('0','1') NOT NULL DEFAULT '0',
+  `priv` text NOT NULL DEFAULT '0',
   PRIMARY KEY (`userkey`,`filter1`,`filter2`,`application`,`class`,`type`),
-  KEY `TMS_permission_ibfk_1` (`userkey`),
-  CONSTRAINT `TMS_permission_ibfk_1` FOREIGN KEY (`userkey`) REFERENCES `TMS_user` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  FOREIGN KEY (`userkey`) REFERENCES `TMS_user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CHECK (priv = '0' OR priv = '1')
+);
 
 COMMIT;

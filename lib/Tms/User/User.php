@@ -482,7 +482,8 @@ class User extends \Tms\Common
 
     public function isRoot()
     {
-        return isset($this->userinfo['lft']) && $this->userinfo['lft'] === '0';
+        return isset($this->userinfo['lft'])
+            && ($this->userinfo['lft'] === '0' || $this->userinfo['lft'] === '0.0');
     }
 
     public function isParent($child_id)
