@@ -22,6 +22,7 @@ class Db extends \P5\Db
     const GET_RETURN_ARRAY = 2;
     const GET_RETURN_STATEMENT = 3;
     const GET_RETURN_COLUMN = 4;
+    const CHILD_TABLE_ALIAS = 'children';
 
     /**
      * Database table prefix.
@@ -334,7 +335,19 @@ class Db extends \P5\Db
                 case self::GET_RETURN_HASH:
                     return $stat->fetch(\PDO::FETCH_ASSOC);
                 case self::GET_RETURN_ARRAY:
-                    return $stat->fetchAll(\PDO::FETCH_ASSOC);
+                    $fetch = $stat->fetchAll(\PDO::FETCH_ASSOC);
+                    foreach ($fetch as &$unit) {
+                        $keys = array_keys($unit);
+                        foreach ($keys as $key) {
+                            $newkey = str_replace(self::CHILD_TABLE_ALIAS.'.', '', $key);
+                            if (!isset($unit[$newkey])) {
+                                $unit[$newkey] = $unit[$key];
+                                unset($unit[$key]);
+                            }
+                        }
+                    }
+                    unset($unit);
+                    return $fetch;
                 case self::GET_RETURN_STATEMENT:
                     return $stat;
                 case self::GET_RETURN_COLUMN:
@@ -388,12 +401,13 @@ class Db extends \P5\Db
             $children = $parent;
         }
 
+        $alias = self::CHILD_TABLE_ALIAS;
         return  "SELECT $columns
                    FROM $parent parent
-                        LEFT OUTER JOIN $children children
-                                     ON children.lft > parent.lft
-                                    AND children.lft < parent.rgt
-                  WHERE children.id IS NOT NULL$extensions";
+                        LEFT OUTER JOIN $children {$alias}
+                                     ON {$alias}.lft > parent.lft
+                                    AND {$alias}.lft < parent.rgt
+                  WHERE {$alias}.id IS NOT NULL$extensions";
     }
 
     /**
@@ -431,17 +445,18 @@ class Db extends \P5\Db
             $children = $parent;
         }
 
+        $alias = self::CHILD_TABLE_ALIAS;
         return  "SELECT $columns
                    FROM $parent parent
-                        LEFT OUTER JOIN $children children
-                                     ON children.lft > parent.lft
-                                    AND children.lft < parent.rgt
+                        LEFT OUTER JOIN $children {$alias}
+                                     ON {$alias}.lft > parent.lft
+                                    AND {$alias}.lft < parent.rgt
                   WHERE NOT EXISTS
                         (
                             SELECT *
                               FROM $midparent midparent
                              WHERE midparent.lft BETWEEN parent.lft AND parent.rgt
-                               AND children.lft BETWEEN midparent.lft AND midparent.rgt
+                               AND {$alias}.lft BETWEEN midparent.lft AND midparent.rgt
                                AND midparent.id NOT IN (children.id, parent.id)
                         ) $filters";
     }
@@ -466,13 +481,14 @@ class Db extends \P5\Db
             $children = $parent;
         }
 
+        $alias = self::CHILD_TABLE_ALIAS;
         return "SELECT $columns
-                  FROM $children children
+                  FROM $children {$alias}
                  WHERE NOT EXISTS (
                                SELECT * 
                                  FROM $parent parent
-                                WHERE children.lft > parent.lft
-                                  AND children.lft < parent.rgt
+                                WHERE {$alias}.lft > parent.lft
+                                  AND {$alias}.lft < parent.rgt
                            )";
     }
 
@@ -505,14 +521,15 @@ class Db extends \P5\Db
             $children = $parent;
         }
 
+        $alias = self::CHILD_TABLE_ALIAS;
         return "SELECT parent.id
-                  FROM ($children) children
+                  FROM ($children) {$alias}
                        LEFT OUTER JOIN ($parent) parent
-                                    ON parent.lft < children.lft
+                                    ON parent.lft < {$alias}.lft
                                    AND parent.lft = (SELECT MAX(lft)
                                                        FROM $parent child
-                                                      WHERE children.lft > child.lft
-                                                        AND children.lft < child.rgt)";
+                                                      WHERE {$alias}.lft > child.lft
+                                                        AND {$alias}.lft < child.rgt)";
     }
 
     /**
@@ -547,12 +564,13 @@ class Db extends \P5\Db
         }
         $filters = (is_null($limit)) ? '' : ' AND parent.lft >= ?';
 
+        $alias = self::CHILD_TABLE_ALIAS;
         return "SELECT $columns
-                  FROM $children children 
+                  FROM $children {$alias} 
                        LEFT OUTER JOIN $parent parent
-                                    ON children.lft > parent.lft 
-                                   AND children.lft < parent.rgt
-                 WHERE children.id = ? $filters";
+                                    ON {$alias}.lft > parent.lft 
+                                   AND {$alias}.lft < parent.rgt
+                 WHERE {$alias}.id = ? $filters";
     }
 
     /**
@@ -585,6 +603,7 @@ class Db extends \P5\Db
             $children = $parent;
         }
 
+        $alias = self::CHILD_TABLE_ALIAS;
         return "SELECT CASE WHEN child.rgt IS NULL
                             THEN parent.lft
                             ELSE MAX(child.rgt)
@@ -592,9 +611,9 @@ class Db extends \P5\Db
                   FROM $parent parent
                        LEFT OUTER JOIN $children child
                                     ON parent.lft = (SELECT MAX(lft)
-                                                       FROM $children children
-                                                      WHERE child.lft > children.lft
-                                                        AND child.lft < children.rgt)";
+                                                       FROM $children {$alias}
+                                                      WHERE child.lft > {$alias}.lft
+                                                        AND child.lft < {$alias}.rgt)";
     }
 
     public function nsmGetPosition($parent, $children = null, $options = null)
@@ -616,14 +635,15 @@ class Db extends \P5\Db
             $children = $parent;
         }
 
+        $alias = self::CHILD_TABLE_ALIAS;
         return "SELECT COUNT(children.id) AS cnt
                   FROM $parent parent
-                  LEFT OUTER JOIN $children children
+                  LEFT OUTER JOIN $children {$alias}
                                ON parent.lft = (
                                       SELECT MAX(lft) 
                                         FROM $children child
-                                       WHERE children.lft > child.lft 
-                                         AND children.lft < child.rgt 
+                                       WHERE {$alias}.lft > child.lft 
+                                         AND {$alias}.lft < child.rgt 
                                   )
                  GROUP BY parent.id";
     }
