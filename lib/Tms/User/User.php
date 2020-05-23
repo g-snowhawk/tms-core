@@ -73,6 +73,7 @@ class User extends \Tms\Common
         if (isset($get[0])) {
             $this->uid = $get[0]['id'];
             $this->userinfo = $get[0];
+            $this->app->mergeConfiguration($this->uid);
         }
     }
 

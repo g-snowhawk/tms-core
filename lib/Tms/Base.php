@@ -227,6 +227,21 @@ abstract class Base
         return false;
     }
 
+    public function mergeConfiguration($uid)
+    {
+        $prefs = $this->db->select(
+            'section,config,value',
+            'user_preference',
+            'WHERE userkey = ?',
+            [$uid]
+        );
+        $user_preference = [];
+        foreach ($prefs as $pref) {
+            $user_preference[$pref['section']][$pref['config']] = $pref['value'];
+        }
+        $this->configuration->merge($user_preference);
+    }
+
     /**
      * Authentication.
      *
