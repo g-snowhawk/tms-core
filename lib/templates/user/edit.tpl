@@ -123,14 +123,16 @@
       {% endif %}
     </div>
 
-    {% if post.profile != 1 %}
-      {% include 'user/permission.tpl' %}
-      {% set template = apps.currentApp('basename') ~ "/permission.tpl" %}
-      {% if apps.view.exists(template) %} 
-        {% include template %}
+    {% if apps.isRoot or (apps.isAdmin and apps.hasPermission('user.grant')) %}
+      {% if post.profile != 1 %}
+        {% include 'user/permission.tpl' %}
+        {% set template = apps.currentApp('basename') ~ "/permission.tpl" %}
+        {% if apps.view.exists(template) %} 
+          {% include template %}
+        {% endif %}
+      {% elseif not apps.hasPermission('root') and config.global.enable_user_alias == '1' %} 
+        {% include 'user/alias_list.tpl' %}
       {% endif %}
-    {% elseif not apps.hasPermission('root') and config.global.enable_user_alias == '1' %} 
-      {% include 'user/alias_list.tpl' %}
     {% endif %}
 
     {% include 'edit_form_metadata.tpl' %}
