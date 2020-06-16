@@ -42,6 +42,18 @@ Node.prototype.findParent = function(key) {
         parent = parent.parentNode;
     }
 };
+String.prototype.translate = function() {
+    let str = '';
+    for (let i = 0; i < this.length; i++) {
+        str += this[i];
+    }
+
+    if (typeof DICTIONARY === 'object' && DICTIONARY[str]) {
+        return DICTIONARY[str];
+    }
+
+    return str;
+}
 
 /**
  * A common set of functions
