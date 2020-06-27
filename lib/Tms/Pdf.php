@@ -209,7 +209,11 @@ class Pdf
                     $this->engine->Line($property['x'],$property['y'],$property['x2'],$property['y2'],$property['style']);
                     break;
                 case 'MultiCell' :
-                    $this->engine->MultiCell($property['width'], 0, $value_str, 0, $property['align'], 0, 1, '', '', $property['flg'], 0, false, false, $property['height']);
+                    $maxh = (isset($property['maxh'])) ? $property['maxh'] : 0;
+                    $border = (isset($property['border'])) ? $property['border'] : 0;
+                    $valign = (isset($property['valign'])) ? $property['valign'] : 'T';
+                    $ishtml = (isset($property['ishtml'])) ? $property['ishtml'] : false;
+                    $this->engine->MultiCell($property['width'], $property['height'], $value_str, $border, $property['align'], 0, 1, '', '', $property['flg'], 0, $ishtml, false, $maxh, $valign, false);
                     break;
                 case 'Image' :
                     $this->engine->Image($data[$property['name']], $property['x'], $property['y'], $property['width'], $property['height']);
