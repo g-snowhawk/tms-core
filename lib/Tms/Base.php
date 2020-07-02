@@ -721,6 +721,7 @@ abstract class Base
             ) {
                 continue;
             }
+            $caller = $stack['object'] ?? null;
             array_unshift($arguments, $stack['class']);
             break;
         }
@@ -741,6 +742,9 @@ abstract class Base
 
             if (class_exists($class) && method_exists($class, $function)) {
                 $inst = new $class($this);
+                if (!empty($caller)) {
+                    $inst->setCaller($caller);
+                }
                 $result[$plugin] = call_user_func_array([$inst, $function], $arguments);
             }
         }

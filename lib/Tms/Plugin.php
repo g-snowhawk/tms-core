@@ -23,6 +23,8 @@ class Plugin extends User
      */
     use \Tms\Accessor;
 
+    protected $caller;
+
     private static $fileExtension = '.php';
     private static $namespaceSeparator = '\\';
 
@@ -125,5 +127,10 @@ class Plugin extends User
         }
 
         return $path;
+    }
+
+    public function setCaller(object $caller)
+    {
+        $this->caller = $caller;
     }
 }
