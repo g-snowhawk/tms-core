@@ -148,9 +148,21 @@ class System extends \Tms\User
         foreach (get_declared_classes() as $class) {
             if (strpos($class, 'ComposerAutoloaderInit') === 0) {
                 $loader = $class::getLoader();
+                $prefixes = array_merge(
+                    $loader->getPrefixesPsr4(),
+                    $loader->getPrefixes()
+                );
+                foreach ($prefixes as $prefix) {
+                    foreach ($prefix as $include) {
+                        self::loadAllIncludes($include);
+                    }
+                }
                 foreach ($loader->getClassMap() as $include) {
-                    self::includeOnce($include);
-                    self::includeOnce(dirname($include) . '/manifesto/setup.php');
+                    if (basename($include) === self::CLASS_FILE
+                        && basename(dirname($include)) === self::CLASS_PATH
+                    ) {
+                        self::includeOnce($include);
+                    }
                 }
                 break;
             }
