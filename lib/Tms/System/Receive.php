@@ -24,35 +24,28 @@ class Receive extends Response
     public function setup()
     {
         $paths = $this->request->POST('paths');
+        $classes = $this->request->POST('classes');
         if (empty($paths)) {
+            $paths = [];
             $this->init();
         }
         $configuration = $this->app->cnf(null);
         $failed = [];
-        foreach ($paths as $classfile) {
+        foreach ($paths as $i => $classfile) {
             include_once($classfile);
             $checksum = md5_file($classfile);
-            if (preg_match("/((Tms|plusfive)\/.+)\/" . preg_quote(self::CLASS_FILE, '/') . "$/", $classfile, $match)) {
-                $class = str_replace(
-                    self::CLASS_PATH,
-                    self::CLASS_NAME,
-                    strtr($match[1], '/', '\\')
-                );
-                $namespace = $class::getNameSpace();
-                $current_version = $this->getPackageVersion($namespace);
-                if (empty($current_version)) {
-                    $current_version = 0;
-                }
-                $instance = new $class($this->app, $current_version);
-                if (get_parent_class($instance) !== 'Tms\\PackageSetup') {
-                    continue;
-                }
-                if (false !== $instance->update($configuration, $current_version)) {
-                    $this->setChecksum([$namespace, $class::VERSION, $checksum]);
-                }
-                else {
-                    $failed[] = $instance->getMessage();
-                }
+
+            $class = $classes[$i];
+            $namespace = $class::getNameSpace();
+            $current_version = $this->getPackageVersion($namespace) ?? 0;
+            $instance = new $class($this->app, $current_version);
+            if (get_parent_class($instance) !== 'Tms\\PackageSetup') {
+                continue;
+            }
+            if (false !== $instance->update($configuration, $current_version)) {
+                $this->setChecksum([$namespace, $class::VERSION, $checksum]);
+            } else {
+                $failed[] = $instance->getMessage();
             }
         }
         $this->saveChecksum();
@@ -82,32 +75,28 @@ class Receive extends Response
     public function setupPlugin()
     {
         $paths = $this->request->POST('paths');
+        $classes = $this->request->POST('classes');
         if (empty($paths)) {
+            $paths = [];
             $this->init();
         }
         $configuration = $this->app->cnf(null);
-        foreach ($paths as $classfile) {
+        $failed = [];
+        foreach ($paths as $i => $classfile) {
             include_once($classfile);
             $checksum = md5_file($classfile);
-            if (preg_match("/plugin\/(.+)\/" . preg_quote(self::CLASS_FILE, '/') . "$/", $classfile, $match)) {
-                $class = str_replace(
-                    self::CLASS_PATH,
-                    self::CLASS_NAME,
-                    strtr($match[1], '/', '\\')
-                );
-                $class = '\\plugin\\' . $class;
-                $namespace = $class::getNameSpace();
-                $current_version = $this->getPackageVersion($namespace);
-                if (empty($current_version)) {
-                    $current_version = 0;
-                }
-                $instance = new $class($this->app, $current_version);
-                if (get_parent_class($instance) !== 'Tms\\PackageSetup') {
-                    continue;
-                }
-                if (false !== $instance->update($configuration, $current_version)) {
-                    $this->setChecksumPlugins([$namespace, $class::VERSION, $checksum]);
-                }
+
+            $class = $classes[$i];
+            $namespace = $class::getNameSpace();
+            $current_version = $this->getPackageVersion($namespace) ?? 0;
+            $instance = new $class($this->app, $current_version);
+            if (get_parent_class($instance) !== 'Tms\\PackageSetup') {
+                continue;
+            }
+            if (false !== $instance->update($configuration, $current_version)) {
+                $this->setChecksumPlugins([$namespace, $class::VERSION, $checksum]);
+            } else {
+                $failed[] = $instance->getMessage();
             }
         }
         $this->saveChecksum('plugins.log');

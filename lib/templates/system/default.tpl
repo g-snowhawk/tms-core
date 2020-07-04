@@ -25,7 +25,13 @@
         <td>{{ package.detail|nl2br }}</td>
         <td class="ta-c">{{ package.current_version }}</td>
         {% if package.new_version is defined %}
-          <td class="ta-c"><label>{{ package.new_version }}<input type="checkbox" name="paths[]" value="{{ package.path }}"></td>
+          <td class="ta-c">
+            <label>
+              {{ package.new_version }}
+              <input type="checkbox" name="paths[]" value="{{ package.path }}">
+              <input type="hidden" name="classes[]" value="{{ package.classname }}">
+            </label>
+          </td>
         {% else %}
           <td class="ta-c">-</td>
         {% endif %}

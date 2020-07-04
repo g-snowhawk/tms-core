@@ -210,6 +210,13 @@ abstract class Base
         if (!is_writable($config_file)) {
             $config_file = $this->cnf('global:data_dir') . '/config.php';
         }
+
+        if (isset($conf['plugins']) && isset($conf['plugins']['paths'])) {
+            $conf['plugins']['paths'] = array_values(
+                array_unique($conf['plugins']['paths'])
+            );
+        }
+
         $configuration = [
             implode('', ['<', '?php']),
             ';',

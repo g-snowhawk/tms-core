@@ -10,6 +10,8 @@
 
 namespace Tms\System;
 
+use ReflectionClass;
+
 /**
  * User management request response class.
  *
@@ -39,40 +41,49 @@ class Response extends \Tms\System
     {
         $this->checkPermission('root');
 
-        $exists = [];
         $packages = [];
         $n = 0;
-        $path = $this->app->cnf('global:data_dir') . '/apps';
 
-        $finds = glob("$path/*/*/" . self::CLASS_PATH);
-        foreach ($finds as $find) {
-            $name = str_replace("$path", '', $find);
-            if (in_array($name, $exists)) {
+        $include_paths = explode(PATH_SEPARATOR, ini_get('include_path'));
+        foreach ($include_paths as $include_path) {
+            if (!file_exists($include_path)) {
                 continue;
             }
+            self::loadAllIncludes($include_path);
+        }
 
-            $classfile = "$find/" . self::CLASS_FILE;
-            include_once($classfile);
-            $class = strtr($name, '/', '\\');
-            $class = str_replace(self::CLASS_PATH, self::CLASS_NAME, $class);
-            $namespace = $class::getNameSpace();
+        $declared_classes = get_declared_classes();
+        self::loadAllByAutoLoader($declared_classes);
 
-            $unit = [
-                'namespace' => $namespace,
-                'current_version' => $this->getPackageVersion($namespace),
-                'detail' => $class::getDescription(),
-            ];
-
-            if ($this->getPackageMd5($namespace) !== md5_file($classfile)
-             && version_compare($class::VERSION, $unit['current_version'], '>')
-            ) {
-                $unit['path'] = $classfile;
-                $unit['new_version'] = $class::VERSION;
+        foreach ($declared_classes as $class) {
+            $reflection = new ReflectionClass($class);
+            if ($reflection->isUserDefined() === false) {
+                continue;
             }
+            $physical_path =  $reflection->getFileName();
+            $namespace = $reflection->getNamespaceName();
+            $class_name = $reflection->getName();
 
-            $packages[] = $unit;
-            $exists[] = $name;
-            ++$n;
+            if (strpos($physical_path, self::CLASS_PATH) !== false
+                && preg_match('/\\\setup$/i', $class_name)
+                && !preg_match('/^plugin\\\/i', $class_name)
+            ) {
+                $unit = [
+                    'classname' => $class_name,
+                    'namespace' => $namespace,
+                    'current_version' => $this->getPackageVersion($namespace),
+                    'detail' => $class::getDescription(),
+                ];
+                if ($this->getPackageMd5($namespace) !== md5_file($physical_path)
+                    && version_compare($class::VERSION, $unit['current_version'], '>')
+                ) {
+                    $unit['path'] = $physical_path;
+                    $unit['new_version'] = $class::VERSION;
+                }
+
+                $packages[] = $unit;
+                ++$n;
+            }
         }
 
         $template = 'system/default.tpl';
@@ -121,51 +132,48 @@ class Response extends \Tms\System
     {
         $this->checkPermission('root');
 
-        $include_path = explode(PATH_SEPARATOR, ini_get('include_path'));
-        $exists = [];
+        //$exists = [];
         $packages = [];
-
         $n = 0;
-        foreach ($include_path as $path) {
-            $finds = glob("$path/plugin/*/" . self::CLASS_PATH);
-            foreach ($finds as $find) {
-                $name = str_replace("$path", '', $find);
-                if (in_array($name, $exists)) {
-                    continue;
-                }
 
-                $classfile = "$find/" . self::CLASS_FILE;
-                include_once($classfile);
-                $class = strtr($name, '/', '\\');
-                $class = str_replace(self::CLASS_PATH, self::CLASS_NAME, $class);
+        $include_paths = explode(PATH_SEPARATOR, ini_get('include_path'));
+        foreach ($include_paths as $include_path) {
+            if (!file_exists($include_path)) {
+                continue;
+            }
+            self::loadAllIncludes($include_path);
+        }
 
-                if (!class_exists($class)) {
-                    //list($className, $prefix) = \Tms\Base::findClass($class);
-                    //if (!empty($className)) {
-                    //    $class = "\\$prefix$class";
-                    //}
-                }
+        $declared_classes = get_declared_classes();
+        self::loadAllByAutoLoader($declared_classes);
 
-                $namespace = $class::getNameSpace();
-                if (isset($prefix)) {
-                    $namespace = preg_replace('/^'.preg_quote($prefix,'/').'\\\/','',$namespace);
-                }
+        foreach ($declared_classes as $class) {
+            $reflection = new ReflectionClass($class);
+            if ($reflection->isUserDefined() === false) {
+                continue;
+            }
+            $physical_path =  $reflection->getFileName();
+            $namespace = $reflection->getNamespaceName();
+            $class_name = $reflection->getName();
 
+            if (strpos($physical_path, self::CLASS_PATH) !== false
+                && preg_match('/\\\setup$/i', $class_name)
+                && preg_match('/^plugin\\\/i', $class_name)
+            ) {
                 $unit = [
+                    'classname' => $class_name,
                     'namespace' => $namespace,
                     'current_version' => $this->getPluginVersion($namespace),
                     'detail' => $class::getDescription(),
                 ];
-
-                if (   $this->getPluginMd5($namespace) !== md5_file($classfile)
+                if ($this->getPackageMd5($namespace) !== md5_file($physical_path)
                     && version_compare($class::VERSION, $unit['current_version'], '>')
                 ) {
-                    $unit['path'] = $classfile;
+                    $unit['path'] = $physical_path;
                     $unit['new_version'] = $class::VERSION;
                 }
 
                 $packages[] = $unit;
-                $exists[] = $name;
                 ++$n;
             }
         }

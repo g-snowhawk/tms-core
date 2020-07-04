@@ -10,6 +10,10 @@
 
 namespace Tms;
 
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
+use FilesystemIterator;
+
 /**
  * User management class.
  *
@@ -113,5 +117,45 @@ class System extends \Tms\User
         }
 
         return 'unknown';
+    }
+
+    protected static function loadAllIncludes($path)
+    {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(
+                $path,
+                FilesystemIterator::SKIP_DOTS|FilesystemIterator::CURRENT_AS_FILEINFO
+            ), RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($iterator as $name => $info) {
+            if ($info->isDir() === false) {
+                continue;
+            }
+            if ($info->isLink() !== false) {
+                self::loadAllIncludes($info->getRealPath());
+                continue;
+            }
+
+            if ($info->getBaseName() === self::CLASS_PATH) {
+                $include = $info->getPathName() . DIRECTORY_SEPARATOR . self::CLASS_FILE;
+                if (file_exists($include)) {
+                    include_once($include);
+                }
+            }
+        }
+    }
+
+    protected static function loadAllByAutoLoader($declared_classes)
+    {
+        foreach ($declared_classes as $class) {
+            if (strpos($class, 'ComposerAutoloaderInit') === 0) {
+                $loader = $class::getLoader();
+                foreach ($loader->getClassMap() as $include) {
+                    if (file_exists($include)) {
+                        include_once($include);
+                    }
+                }
+            }
+        }
     }
 }
