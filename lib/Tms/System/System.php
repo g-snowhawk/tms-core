@@ -138,23 +138,38 @@ class System extends \Tms\User
 
             if ($info->getBaseName() === self::CLASS_PATH) {
                 $include = $info->getPathName() . DIRECTORY_SEPARATOR . self::CLASS_FILE;
-                if (file_exists($include)) {
-                    include_once($include);
-                }
+                self::includeOnce($include);
             }
         }
     }
 
-    protected static function loadAllByAutoLoader($declared_classes)
+    protected static function loadAllByAutoLoader()
     {
-        foreach ($declared_classes as $class) {
+        foreach (get_declared_classes() as $class) {
             if (strpos($class, 'ComposerAutoloaderInit') === 0) {
                 $loader = $class::getLoader();
                 foreach ($loader->getClassMap() as $include) {
-                    if (file_exists($include)) {
-                        include_once($include);
-                    }
+                    self::includeOnce($include);
+                    self::includeOnce(dirname($include) . '/manifesto/setup.php');
                 }
+                break;
+            }
+        }
+    }
+
+    protected static function includeOnce($path)
+    {
+        if (file_exists($path)) {
+            $source = php_strip_whitespace($path);
+            $class_name = [];
+            $patterns = ["/namespace\s+([^\s]+)\s*;/","/class\s+([^\s]+)[^\{]*\{/s"];
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $source, $match)) {
+                    $class_name[] = $match[1];
+                }
+            }
+            if (!class_exists(implode("\\", $class_name))) {
+                include_once($path);
             }
         }
     }

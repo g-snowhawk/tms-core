@@ -52,10 +52,9 @@ class Response extends \Tms\System
             self::loadAllIncludes($include_path);
         }
 
-        $declared_classes = get_declared_classes();
-        self::loadAllByAutoLoader($declared_classes);
+        self::loadAllByAutoLoader();
 
-        foreach ($declared_classes as $class) {
+        foreach (get_declared_classes() as $class) {
             $reflection = new ReflectionClass($class);
             if ($reflection->isUserDefined() === false) {
                 continue;
@@ -132,7 +131,6 @@ class Response extends \Tms\System
     {
         $this->checkPermission('root');
 
-        //$exists = [];
         $packages = [];
         $n = 0;
 
@@ -144,10 +142,9 @@ class Response extends \Tms\System
             self::loadAllIncludes($include_path);
         }
 
-        $declared_classes = get_declared_classes();
-        self::loadAllByAutoLoader($declared_classes);
+        self::loadAllByAutoLoader();
 
-        foreach ($declared_classes as $class) {
+        foreach (get_declared_classes() as $class) {
             $reflection = new ReflectionClass($class);
             if ($reflection->isUserDefined() === false) {
                 continue;
