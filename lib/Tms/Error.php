@@ -41,7 +41,7 @@ class Error extends \P5\Error
         if (!empty($template) && !is_file($template)) {
             $paths = explode(PATH_SEPARATOR, get_include_path());
             foreach ($paths as $path) {
-                $fullpath = $path . PATH_SEPARATOR . $template;
+                $fullpath = $path . DIRECTORY_SEPARATOR . $template;
                 if (is_file($fullpath)) {
                     $found = $fullpath;
                     break;
