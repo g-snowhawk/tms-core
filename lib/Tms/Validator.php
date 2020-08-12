@@ -267,7 +267,16 @@ class Validator
                 }
                 break;
             default:
-                $result = !empty($value);
+                // External validation
+                if (is_array($type)) {
+                    $class = $type[0];
+                    $method = $type[1];
+                    if ((is_object($class) || class_exists($class)) && method_exists($class, $method)) {
+                        $result = call_user_func($type);
+                    }
+                } else {
+                    $result = !empty($value);
+                }
         }
 
         if ($result === false && in_array('allowempty', (array)$this->_checker[$key]['args'])) {

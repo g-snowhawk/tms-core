@@ -44,7 +44,7 @@ define('ERROR_DOCUMENT', 'templates/Error.tpl');
 /*
  * The location of autoloader
  */
-define('AUTOLOADER', 'path/to/autoload.php');
+//define('AUTOLOADER', 'path/to/autoload.php');
 
 /*
  * The list of additional include path
@@ -57,4 +57,4 @@ define('AUTOLOADER', 'path/to/autoload.php');
 
 /* ========================================================================== */
 
-if(defined('INCLUDE_PATH')){ini_set('include_path',implode(PATH_SEPARATOR,INCLUDE_PATH).PATH_SEPARATOR.ini_get('include_path'));}require_once(AUTOLOADER);$inst=new Tms\App(ERROR_DOCUMENT);$inst->run();
+if(defined('INCLUDE_PATH')){ini_set('include_path',implode(PATH_SEPARATOR,INCLUDE_PATH).PATH_SEPARATOR.ini_get('include_path'));}if(defined('AUTOLOADER')){require_once AUTOLOADER;}$inst=new Tms\App(ERROR_DOCUMENT);$inst->run();
