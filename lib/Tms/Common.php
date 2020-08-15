@@ -625,4 +625,13 @@ abstract class Common
         echo json_encode($json);
         exit;
     }
+
+    static public function pageNotFound(\Tms\App $app)
+    {
+        header("{$_SERVER['SERVER_PROTOCOL']} 404 Not Found");
+        $view = $app->createView();
+        $view->bind('url', $_SERVER["REQUEST_URI"]);
+        $view->render('404.tpl');
+        exit;
+    }
 }
