@@ -149,7 +149,7 @@ class User extends \Tms\Common
         }
 
         if ($this->isRoot() && $this->request->param('profile') !== '1') {
-            $save['admin'] = ($post['admin'] === '1') ? $post['admin'] : '0';
+            $save['admin'] = $post['admin'] ?? '0';
         }
 
         if (empty($post['id'])) {
@@ -404,9 +404,9 @@ class User extends \Tms\Common
     {
         $value = $this->parsePermissionKey($key);
         $value['userkey'] = $userkey;
-        $value['filter1'] = $filter1;
-        $value['filter2'] = $filter2;
-        $value['priv']    = $priv;
+        if (!empty($value['filter1'])) $value['filter1'] = $filter1;
+        if (!empty($value['filter2'])) $value['filter2'] = $filter2;
+        $value['priv'] = $priv;
 
         return $this->db->updateOrInsert('permission', $value, $this->permission_table_keys);
     }
