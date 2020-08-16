@@ -404,8 +404,8 @@ class User extends \Tms\Common
     {
         $value = $this->parsePermissionKey($key);
         $value['userkey'] = $userkey;
-        if (!empty($value['filter1'])) $value['filter1'] = $filter1;
-        if (!empty($value['filter2'])) $value['filter2'] = $filter2;
+        if (!empty($filter1)) $value['filter1'] = $filter1;
+        if (!empty($filter2)) $value['filter2'] = $filter2;
         $value['priv'] = $priv;
 
         return $this->db->updateOrInsert('permission', $value, $this->permission_table_keys);
