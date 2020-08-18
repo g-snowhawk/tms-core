@@ -185,8 +185,10 @@ class View implements ViewInterface
         }
 
         \P5\Http::responseHeader('X-Frame-Options', 'SAMEORIGIN');
-        \P5\Http::responseHeader('X-XSS-Protection', '1');
+        \P5\Http::responseHeader('X-XSS-Protection', '1; mode=block');
         \P5\Http::responseHeader('X-Content-Type-Options', 'nosniff');
+
+        header_remove('x-powered-by');
 
         echo $html;
         exit;
