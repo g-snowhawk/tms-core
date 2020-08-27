@@ -303,10 +303,16 @@ class View implements ViewInterface
         if (!file_exists($template_path)) {
             return true;
         }
+
+        $origin = $this->getPaths();
+
         $cache = $this->engine->getCache(false);
         $this->setPath(dirname($template_path));
         $name = basename($template_path);
         $cache_file = $cache->generateKey($name, $this->engine->getTemplateClass($name));
+
+        $this->setPaths($origin);
+
         if (!file_exists($cache_file)) {
             return true;
         }

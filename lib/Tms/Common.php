@@ -361,7 +361,7 @@ abstract class Common
         }
 
         foreach ($plugins as $plugin) {
-            $class = "\\plugin\\$plugin";
+            $class = "\\plugin\\" . preg_replace('/^\\\?plugin\\\/', '', $plugin);
             if (isset($package)) {
                 $class .= "\\$package";
             }
@@ -371,6 +371,8 @@ abstract class Common
                 return call_user_func_array([$inst, $func], $args);
             }
         }
+
+        trigger_error("{$class} or {$func} is not found.");
     }
 
     protected function postReceived($message, $status, $response, array $options = [])

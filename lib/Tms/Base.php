@@ -446,7 +446,7 @@ abstract class Base
             if (is_null($plugin_paths)) {
                 //
             } elseif (in_array($unit['namespace'], $plugin_paths)) {
-                $unit['namespace'] = '\\plugin\\' . $unit['namespace'];
+                $unit['namespace'] = '\\' . $unit['namespace'];
             } else {
                 throw new \ErrorException("{$unit['namespace']} is not enabled");
             }
@@ -492,7 +492,7 @@ abstract class Base
             $namespace = strtolower($match[2]);
             $separator = substr($match[1], -1);
             if ($separator === "~") {
-                $namespace = self::upperCamelCase($match[2]);
+                $namespace = 'plugin\\' . self::upperCamelCase($match[2]);
             }
 
             // inarray paths
@@ -699,7 +699,7 @@ abstract class Base
 
         $plugins = array_reverse(array_unique((array)$this->cnf('plugins:paths')));
         foreach ($plugins as $plugin) {
-            $class = "\\plugin\\$plugin";
+            $class = "\\plugin\\" . preg_replace('/^\\\?plugin\\\/', '', $plugin);
             if (class_exists($class) && method_exists($class, 'extendTemplateDir')) {
                 array_unshift($paths, $class::extendTemplateDir());
             }
