@@ -272,3 +272,141 @@ TM_Common.prototype.initModule = function() {
         );
     }
 };
+
+
+class Dialog {
+    constructor(title, type, callback) {
+        this.callback = callback;
+        this.type = type;
+        this.createDialog(title, type);
+    }
+
+    createDialog(title, type) {
+        this.container = document.body.appendChild(document.createElement('div'));
+        this.setStyle(this.container, {
+            alignItems : 'center',
+            backgroundColor : 'rgba(0,0,0,0.5)',
+            bottom : '0',
+            display : 'flex',
+            justifyContent : 'center',
+            left : '0',
+            position : 'absolute',
+            right : '0',
+            top : '0',
+            zIndex : '2147483647',
+        });
+
+        const dialog = this.container.appendChild(document.createElement('div'));
+        this.setStyle(dialog, {
+            backgroundColor : '#FFF',
+            borderRadius : '6px',
+            minWidth : '380px',
+            minHeight : '60px',
+            overflow: 'hidden',
+        });
+
+        const message = dialog.appendChild(document.createElement('p'));
+        message.innerHTML = title;
+        this.setStyle(message, {
+            fontSize: '11pt',
+            margin: '1.2em 1em',
+        });
+
+        if (type === 'prompt' || type === 'secret') {
+            const span = message.appendChild(document.createElement('span'));
+            this.setStyle(span, {
+                display: 'block',
+                width: '100%',
+            });
+            this.input = span.appendChild(document.createElement('input'));
+            this.input.name = 'answer';
+            this.input.type = (type === 'secret') ? 'password' : 'text';
+            this.setStyle(this.input, {
+                fontSize: '9pt',
+                width: '100%',
+            });
+
+            this.input.focus();
+        }
+
+        const line = dialog.appendChild(document.createElement('hr'));
+        this.setStyle(line, {
+            border : '0 none transparent',
+            borderTop : '1px solid #ccc',
+            height : '0',
+            margin : '0',
+        });
+
+        const buttons = dialog.appendChild(document.createElement('p'));
+        this.setStyle(buttons, {
+            margin: '0 0.8em',
+            textAlign : 'right',
+        });
+
+        if (type === 'confirm' || type === 'prompt' || type === 'secret') {
+            const cancelButton = buttons.appendChild(document.createElement('button'));
+            cancelButton.value = 'cancel';
+            cancelButton.innerHTML = 'Cancel';
+            this.setStyle(cancelButton, {
+                background: 'transparent',
+                borderRadius: '0',
+                borderWidth: '0',
+                color : 'blue',
+                fontSize: '11pt',
+                height: 'auto',
+                lineHeight: '1',
+                margin: '0.8em 0.5em',
+                minHeight: 'auto',
+                minWidth: 'auto',
+                padding: '0',
+                textAlign : 'center',
+                textDecoration : 'none',
+                width: 'auto',
+            });
+
+            cancelButton.addEventListener('click', this.close.bind(this));
+        }
+
+        const okButton = buttons.appendChild(document.createElement('button'));
+        okButton.value = 'ok';
+        okButton.innerHTML = 'OK';
+        this.setStyle(okButton, {
+            background: 'transparent',
+            borderRadius: '0',
+            borderWidth: '0',
+            color : 'blue',
+            fontSize: '11pt',
+            height: 'auto',
+            lineHeight: '1',
+            margin: '0.8em 0.5em',
+            minHeight: 'auto',
+            minWidth: 'auto',
+            padding: '0',
+            textAlign : 'center',
+            textDecoration : 'none',
+            width: 'auto',
+        });
+
+        okButton.addEventListener('click', this.close.bind(this));
+    }
+
+    setStyle(element, styles) {
+        for (let key in styles) {
+            element.style[key] = styles[key];
+        }
+    }
+
+    close(event) {
+        event.preventDefault();
+        const returnValue = event.target.value;
+        this.container.parentNode.removeChild(this.container);
+        if (typeof this.callback === 'function') {
+            const func = function(click, input, type) {
+                return (type === 'prompt' || type === 'secret')
+                    ? input : click;
+            }
+            let answer = (returnValue === 'cancel') ? null : func(returnValue, this.input.value, this.type);
+            this.callback(answer);
+        }
+    }
+}
