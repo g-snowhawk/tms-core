@@ -476,14 +476,18 @@ a.small-button:hover {
   flex-grow: 1;
   height: 10%;
   overflow: auto;
+  position: relative;
 }
 .explorer-list table {
   border-collapse: collapse;
   empty-cells: show;
   min-width: 100%;
 }
-.explorer-list thead {
+.explorer-list thead td {
   background: #9cf;
+  position: sticky;
+  top: 0;
+  z-index: 99;
 }
 .explorer-list table td {
   box-sizing: border-box;

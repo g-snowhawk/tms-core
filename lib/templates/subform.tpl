@@ -1,5 +1,5 @@
 {% set position = formposition is not empty ? formposition : 'left' %}
-<form id="{{ subformPrefix }}subform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}"{% if form.confirm %} data-confirm="{{ form.confirm|url_encode }}"{% endif %} data-position="{{ position }}">
+<form id="{{ subformPrefix }}subform" action="{{ form.action }}" method="{{ form.method }}" enctype="{{ form.enctype }}"{% if form.confirm %} data-confirm="{{ form.confirm|url_encode }}"{% endif %} data-position="{{ position }}"{% if subformClass is defined %} class="{{ subformClass }}"{% endif %}>
   <input type="hidden" name="stub" value="{{ stub }}">
   {% block main %}{% endblock %}
 </form>

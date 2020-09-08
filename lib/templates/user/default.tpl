@@ -1,14 +1,11 @@
 {% extends "master.tpl" %}
 
-{% block head %}
-  <script src="{{ config.global.assets_path }}script/fix_thead_vertical_scroll.js"></script>
-{% endblock %}
-
 {% block main %}
   <input type="hidden" name="mode" value="user.receive:remove">
   <div class="explorer-list">
     <h1 class="headline">登録ユーザー一覧</h1>
-    <table class="ftv-table">
+    <div class="explorer-body">
+    <table>
       <thead>
         <tr>
           <td>フルネーム</td>
@@ -55,6 +52,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
     <div class="footer-controls">
       <nav class="links">
         {% if apps.hasPermission('user.create') %}
