@@ -26,8 +26,8 @@ TM_Accordion.prototype.openingAndClosing = function(element) {
 
     // Apply callback function
     if (element.dataset.callback) {
-        var func = new Function('arg1', 'return ' + element.dataset.callback + '(arg1)');
-        func(accordion);
+        var func = new Function('arg1', 'arg2', 'return ' + element.dataset.callback + '(arg1, arg2)');
+        func(accordion, element);
     }
 };
 
@@ -56,6 +56,7 @@ TM_Accordion.prototype.init = function() {
         accordion.classList.add('accordion-closed');
         element.addEventListener('click', this.listener, false);
         element.dataset.cancelWindowEvent = 1;
+        element.dataset.more = element.innerHTML;
     }
 };
 
