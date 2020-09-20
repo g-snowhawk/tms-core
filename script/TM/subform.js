@@ -11,6 +11,7 @@ function Subform() {
     this.inited = false;
     this.sealedID = 'subform-sealed';
     this.cancelButtonID = 'cancel-subform-button';
+    this.cancelButtonClass = 'cancel-subform-buttons';
     this.containerID = 'subform-container';
     this.position = 'left';
     this.cnTransition = 'trans-' + this.position;
@@ -95,6 +96,11 @@ Subform.prototype.endOpenTransition = function(container) {
 Subform.prototype.setListenerButtons = function() {
     var cancelSubformButton = document.getElementById(this.cancelButtonID);
     cancelSubformButton.addEventListener('click', this.listener, false);
+
+    var cancelButtons = document.getElementsByClassName(this.cancelButtonClass);
+    for (var i = 0; i < cancelButtons.length; i++) {
+        cancelButtons[i].addEventListener('click', this.listener, false);
+    }
 };
 
 Subform.prototype.setListenerForms = function(container) {
@@ -276,10 +282,16 @@ Subform.prototype.posted = function(json, form) {
 };
 
 Subform.prototype.submit = function(form) {
+    var instance = TM.subform;
     if (form.dataset && form.dataset.confirm) {
         if (!confirm(form.dataset.confirm)) {
             return;
         }
+    }
+
+    if (form.dataset.viaXHttpRquest && typeof window[form.dataset.viaXHttpRquest] === 'function') {
+        window[form.dataset.viaXHttpRquest].apply(instance, [form]);
+        return;
     }
 
     if (form.normal_request && form.normal_request.value === '1') {
@@ -287,7 +299,6 @@ Subform.prototype.submit = function(form) {
         return;
     }
 
-    var instance = TM.subform;
     TM.xhr.init('POST', form.action, true, function(event){
         if(this.status == 200){
             try {
@@ -414,8 +425,12 @@ Subform.prototype.listener = function(event) {
             if (!container) {
                 instance.open(caller);
             }
-            else if (caller.id === 'cancel-subform-button') {
-                instance.close(container);
+            else if (caller.id === instance.cancelButtonID || caller.classList.contains(instance.cancelButtonClass)) {
+                var skipClose = (caller.dataset.callbackSubform && typeof window[caller.dataset.callbackSubform] === 'function')
+                    ? window[caller.dataset.callbackSubform].apply(instance, [caller, container]) : false;
+                if (skipClose === false) {
+                    instance.close(container);
+                }
             }
             break;
         case 'submit':
