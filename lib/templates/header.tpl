@@ -22,3 +22,4 @@
     {% include template %}
   {% endif %}
   {{ head|raw }}
+  <script src="{{ config.global.assets_path }}script/mobile.js"></script>
