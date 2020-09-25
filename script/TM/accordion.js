@@ -15,7 +15,8 @@ var TM_Accordion = function() {
 };
 
 TM_Accordion.prototype.openingAndClosing = function(element) {
-    var accordion = document.getElementById(element.hash.substr(1));
+    var id = element.hash || element.dataset.href;
+    var accordion = document.getElementById(id.substr(1));
     if (accordion.classList.contains(this.cnClosed)) {
         accordion.classList.remove(this.cnClosed);
         accordion.style.height = accordion.dataset.height + 'px';
@@ -42,13 +43,16 @@ TM_Accordion.prototype.listener = function(event) {
 };
 
 TM_Accordion.prototype.init = function() {
-    var anchor = document.querySelectorAll('a.' + this.cnSwitcher);
+    var anchor = document.querySelectorAll('.' + this.cnSwitcher);
     for (var i = 0; i < anchor.length; i++) {
         var element = anchor[i];
-        var accordion = document.getElementById(element.hash.substr(1));
-        if (!accordion) {
-            continue;
+        if (element.dataset.childOf) {
+            if (!element.findParent(element.dataset.childOf)) {
+                continue;
+            }
         }
+        var id = element.hash || element.dataset.href;
+        var accordion = document.getElementById(id.substr(1));
         var origin = accordion.style.height;
         accordion.style.height = 'auto';
         accordion.dataset.height = accordion.clientHeight;
