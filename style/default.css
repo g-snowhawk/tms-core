@@ -489,7 +489,7 @@ a.small-button:hover {
   background: #9cf;
   position: sticky;
   top: 0;
-  z-index: 99;
+  z-index: 89;
 }
 .explorer-list table td {
   box-sizing: border-box;
