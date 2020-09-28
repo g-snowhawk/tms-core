@@ -17,21 +17,6 @@
   <header id="global-nav">
     <nav>
       <ul class="navroot">
-        <li id="nav-00">
-          <span class="logo">Tak-Me <span>System</span></span>
-          <a href="?mode=user.response.response:profile">ID: {{ apps.userinfo.uname }}</a>
-          <ul>
-            {% set template = template_dir ~ "/private_nav.tpl" %}
-            {% if apps.view.exists(template) %} 
-              {% include template %}
-            {% endif %}
-            <li><a href="?mode=user.response:profile">プロフィール編集</a></li>
-            {% if session.origin is defined %}
-              <li><a href="?mode=user.response:rewind">アカウント復帰</a></li>
-            {% endif %}
-            <li><hr><a href="?logout" class="signout" id="signout">サインアウト</a></li>
-          </ul>
-        </li>
         {% if nav|length > 1 %} 
           {% for item in nav %}
             {% if loop.first %}
@@ -67,6 +52,21 @@
             </ul>
           </li>
         {% endif %}
+        <li id="nav-00">
+          <span class="logo">Tak-Me <span>System</span></span>
+          <a href="?mode=user.response.response:profile">ID: {{ apps.userinfo.uname }}</a>
+          <ul>
+            {% set template = template_dir ~ "/private_nav.tpl" %}
+            {% if apps.view.exists(template) %} 
+              {% include template %}
+            {% endif %}
+            <li><a href="?mode=user.response:profile">プロフィール編集</a></li>
+            {% if session.origin is defined %}
+              <li><a href="?mode=user.response:rewind">アカウント復帰</a></li>
+            {% endif %}
+            <li><hr><a href="?logout" class="signout" id="signout">サインアウト</a></li>
+          </ul>
+        </li>
       </ul>
     </nav>
   </header>

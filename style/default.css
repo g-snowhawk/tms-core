@@ -639,7 +639,7 @@ a.small-button:hover {
 #global-nav ul {
   box-shadow: 0 1px 6px 0 rgba(0,0,0,.3);
   background: #efefef;
-  border-bottom: 1px solid #ababab;
+  display: flex;
   font-size: 0;
   list-style-type: none;
   margin: 0;
@@ -647,7 +647,6 @@ a.small-button:hover {
   width: 100%;
 }
 #global-nav li {
-  display: inline;
   margin: 0;
   padding: 0;
   position: relative;
@@ -657,7 +656,7 @@ a.small-button:hover {
   color: #333;
   display: inline-block;
   font-size: .8rem;
-  line-height: 24px;
+  line-height: 1.6rem;
   padding: 0 8px;
   text-decoration: none;
   transition: background-color .3s ease;
@@ -668,7 +667,7 @@ a.small-button:hover {
   color: #fff;
 }
 #global-nav #nav-00 {
-  float: right;
+  margin-left: auto;
 }
 #global-nav #nav-00 > a {
   background-image: url(icon_gear.svg);
@@ -687,7 +686,7 @@ a.small-button:hover {
   font-family: 'Helvetica Neue', Verdana, sans-serif;
   font-size: .8rem;
   font-weight: 300;
-  line-height: 24px;
+  line-height: 1.6rem;
   padding: 0 12px;
   vertical-align: top;
 }
@@ -704,7 +703,7 @@ a.small-button:hover {
   min-width: 200px;
   padding-top: 4px;
   position: absolute;
-  top: 25px;
+  top: 100%;
 }
 #global-nav li ul.open {
   display: block;
