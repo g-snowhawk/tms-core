@@ -137,7 +137,9 @@ MultiSelector.prototype.init = function(event) {
         }
     }
 
-    window.addEventListener('mouseup', this.listener, false);
+    if (selectors.length > 0) {
+        window.addEventListener('mouseup', this.listener, false);
+    }
 };
 
 //MultiSelector.prototype.onLoad = function(scope, func) 
