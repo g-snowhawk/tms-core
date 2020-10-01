@@ -4,66 +4,147 @@
  * This software is released under the MIT License.
  * https://www.plus-5.com/licenses/mit-license
  *
- * @copyright 2017 PlusFive (https://www.plus-5.com)
- * @version 1.0.0
+ * @copyright 2017-2020 PlusFive (https://www.plus-5.com)
+ * @version 1.0.1
  */
-var TM_Editor = function() {
-    this.textarea = undefined;
-    this.lstr =  '';
-    this.mstr =  '';
-    this.rstr =  '';
-    this.checkDblClick = 0;
-    this.cnActiveImage = 'editor-image-active';
-    TM.initModule(this.init, this);
-};
+const markdownEditorActiveImageClassName = 'editor-image-active';
+let markdownEditorCurrentArea;
+let markdownEditorLeftString;
+let markdownEditorRightString;
+let markdownEditorSelectedString;
+let markdownEditorClickCount = 0;
+let uploadMaxFileSize = 0;
+let postMaxSize = 0;
+switch (document.readyState) {
+    case 'loading' :
+        window.addEventListener('DOMContentLoaded', markdownEditorInit)
+        break;
+    case 'interactive':
+    case 'complete':
+        markdownEditorInit();
+        break;
+}
 
-TM_Editor.prototype.init = function(event) {
-    var elements = document.getElementsByTagName('a');
-    for (var i = 0; i < elements.length; i++) {
-        var element = elements[i];
-        if (element.dataset.insert) {
-            element.addEventListener('click', this.onClick, false);
+function markdownEditorInit(event) {
+    const buttons = document.querySelectorAll('a[data-insert]');
+    buttons.forEach((button) => {
+        button.addEventListener('click', markdownEditorOnClick);
+    });
+}
+
+function markdownEditorOnClick(event) {
+    event.preventDefault();
+    const trigger = event.target;
+
+    if (trigger.name === 'editor-insert') {
+        return markdownEdirotInsertCode(trigger);
+    } else if (trigger.name === 'editor-cancel') {
+        return markdownEditorClearMask(event);
+    }
+
+    const id = trigger.hash;
+    markdownEditorCurrentArea = document.querySelector(trigger.hash);
+    if (!markdownEditorCurrentArea) {
+        return;
+    }
+    markdownEditorCurrentArea.focus();
+    const value = markdownEditorCurrentArea.value;
+    const start = markdownEditorCurrentArea.selectionStart;
+    const end = markdownEditorCurrentArea.selectionEnd;
+
+    markdownEditorLeftString = value.slice(0, start);
+    markdownEditorRightString = value.slice(end);
+    markdownEditorSelectedString = (start != end) ? value.slice(start, end) : '';
+
+    let callback = undefined;
+    switch(trigger.dataset.insert) {
+        case 'link':
+            callback = markdownEditorLinkForm;
+            break;
+        case 'image':
+            callback = markdownEditorImageForm;
+            break;
+    }
+    if (callback) {
+        markdownEditorCreateForm(
+            markdownEditorCreateMask(),
+            trigger,
+            trigger.dataset.insert,
+            callback
+        );
+    }
+}
+
+function markdownEditorCreateMask() {
+    const mask = document.body.appendChild(document.createElement('div'));
+    mask.id = 'mask';
+
+    return mask;
+}
+
+function markdownEditorClearMask() {
+    const mask = document.getElementById('mask');
+    if (mask) {
+        mask.parentNode.removeChild(mask);
+    }
+}
+
+function markdownEditorCreateForm(mask, element, type, callback) {
+    fetch(TM_Common.__DIR__ + '/TM/editor/' + type + '.html', {
+        method: 'GET',
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.text();
+        }
+    })
+    .then(text => {
+        mask.innerHTML = text;
+        if (typeof callback === 'function') {
+            callback.call(this, mask, element);
+        }
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+
+function markdownEditorLinkForm(mask, element) {
+    mask.addEventListener('click', markdownEditorClearMask);
+
+    const elements = mask.getElementsByTagName('input');
+    for(let i = 0; i < elements.length; i++) {
+        const element = elements[i];
+        if(element.type === 'button') {
+            element.addEventListener('click', markdownEditorOnClick);
+            continue;
+        }
+        switch(element.name) {
+            case 'editor-url':
+                element.focus();
+                break;
+            case 'editor-text':
+                element.value = markdownEditorSelectedString;
+                break;
         }
     }
+
+    const form = mask.getElementsByTagName('form')[0];
+    form.action = location.pathname;
+    form.style.height = form.clientHeight + 'px';
+    form.className = 'link';
+    form.addEventListener('click', markdownEditorCancelBubble);
 };
 
-TM_Editor.prototype.onClick = function(event) {
-    event.preventDefault();
-    var instance = TM.editor;
-    var element = event.currentTarget;
+function markdownEditorCancelBubble(event) {
+    event.stopPropagation();
+}
 
-    if (element.name === 'editor-insert') {
-        return instance.insert(element);
-    }
-    else if (element.name === 'editor-cancel') {
-        return instance.clearWindow(event);
-    }
-
-    var id = element.hash;
-    instance.textarea = document.querySelector(id);
-    instance.textarea.focus();
-    var value = instance.textarea.value;
-    var start = instance.textarea.selectionStart;
-    var end = instance.textarea.selectionEnd;
-    instance.lstr = value.slice(0, start);
-    instance.rstr = value.slice(end);
-    instance.mstr = (start != end) ? value.slice(start, end) : '';
-
-    switch(element.dataset.insert) {
-        case 'link':
-            instance.createLinkForm(instance.maskWindow(), element);
-            break;
-        case 'image':
-            instance.createImageForm(instance.maskWindow(), element);
-            break;
-    }
-};
-
-TM_Editor.prototype.insert = function(element) {
-    var url, text, imark;
+function markdownEdirotInsertCode(element) {
+    let url, text, imark;
     switch(element.dataset.type) {
         case 'image':
-            var span = document.getElementsByClassName(this.cnActiveImage);
+            const span = document.getElementsByClassName(markdownEditorActiveImageClassName);
             if(span.length == 0) {
                 alert('画像が選択されていません');
                 return;
@@ -81,131 +162,81 @@ TM_Editor.prototype.insert = function(element) {
             break;
     }
 
-    if(url != '') {
-        var lStr = this.lstr;
-        var mStr = (text === '') ? this.mstr : text;
-        var rStr = this.rstr;
-        this.textarea.value = lStr + imark + '[' + mStr + '](' + url + ')' + rStr;
+    if(url !== '') {
+        const mStr = (text === '') ? markdownEditorSelectedString : text;
+        markdownEditorCurrentArea.value = markdownEditorLeftString
+            + imark + '[' + mStr + '](' + url + ')' + markdownEditorRightString;
     }
-    this.lstr = '';
-    this.mstr = '';
-    this.rstr = '';
-    this.textarea = undefined;
-    this.clearWindow();
-};
+    markdownEditorLeftString = '';
+    markdownEditorRightString = '';
+    markdownEditorSelectedString = '';
+    markdownEditorCurrentArea = undefined;
+    markdownEditorClearMask();
+}
 
-TM_Editor.prototype.clearWindow = function(event) {
-    var mask = document.getElementById('mask');
-    if (mask) {
-        mask.parentNode.removeChild(mask);
-    }
-};
-
-TM_Editor.prototype.maskWindow = function() {
-    var mask = document.body.appendChild(document.createElement('div'));
-    mask.id = 'mask';
-    return mask;
-};
-
-TM_Editor.prototype.createLinkForm = function(mask, element) {
-    TM.xhr.init('GET', TM_Common.__DIR__ + '/TM/editor/link.html', true, function(event) {
-        if (this.status === 200) {
-            mask.innerHTML = this.responseText;
-            TM.editor.linkForm(mask, element);
-        }
-    });
-    TM.xhr.send(null);
-};
-
-TM_Editor.prototype.linkForm = function(mask, element) {
-    var backGround = mask.getElementsByClassName('back')[0];
-    backGround.addEventListener('click', TM.editor.clearWindow);
-
-    var elements = mask.getElementsByTagName('input');
-    for(var i = 0; i < elements.length; i++) {
-        var element = elements[i];
-        if(element.type == 'button') {
-            element.addEventListener('click', TM.editor.onClick, false);
-            continue;
-        }
-        switch(element.name) {
-            case 'editor-url':
-                element.focus();
-                break;
-            case 'editor-text':
-                element.value = this.mstr;
-                break;
-        }
-    }
-
-    var form = mask.getElementsByTagName('form')[0];
-    form.action = location.pathname;
-    form.style.height = form.clientHeight + 'px';
-    form.className = 'link';
-};
-
-TM_Editor.prototype.createImageForm = function(mask, element) {
-    TM.xhr.init('GET', TM_Common.__DIR__ + '/TM/editor/image.html', true, function(event) {
-        if (this.status === 200) {
-            mask.innerHTML = this.responseText;
-            TM.editor.imageForm(mask, element);
-        }
-    });
-    TM.xhr.send(null);
-};
-
-TM_Editor.prototype.imageForm = function(mask, element) {
-    var stub = document.querySelector('[name=stub]');
+function markdownEditorImageForm(mask, element) {
+    const stub = document.querySelector('input[name=stub]');
     if (!stub) {
         return;
     }
 
-    var backGround = mask.getElementsByClassName('back')[0];
-    backGround.addEventListener('click', TM.editor.clearWindow);
+    mask.addEventListener('click', markdownEditorClearMask);
 
-    var form = mask.getElementsByTagName('form')[0];
+    const form = mask.getElementsByTagName('form')[0];
     form.action = location.pathname;
     form.stub.value = stub.value;
     form.dataset.upload = element.dataset.upload;
     form.dataset.delete = element.dataset.delete;
     form.dataset.list = element.dataset.list;
     form.dataset.confirm = element.dataset.confirm;
+    form.addEventListener('click', markdownEditorCancelBubble);
 
-    var elements = mask.getElementsByTagName('input');
-    for (var i = 0; i < elements.length; i++) {
-        var element = elements[i];
+    const elements = mask.getElementsByTagName('input');
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
         if (element.type === 'file') {
-            element.addEventListener('change', this.imageSelected, false);
+            element.addEventListener('change', markdownEditorImageSelected);
         } else if (element.type === 'button') {
-            element.addEventListener('click', this.onClick, false);
+            element.addEventListener('click', markdownEditorOnClick);
         }
     }
 
-    TM.xhr.init('GET', form.action + '?mode=' + form.dataset.list, true, function(event) {
-        if(this.status == 200) {
-            try {
-                var json = JSON.parse(this.responseText);
-            } catch (exceptionObject) {
-                console.error(exceptionObject.message);
-                console.log(this.responseText);
-                return;
+    fetch(form.action + '?mode=' + form.dataset.list, {
+        method: 'GET',
+    })
+    .then(response => {
+        if (response.ok) {
+            let contentType = response.headers.get("content-type");
+            if (contentType.match(/^application\/json/)) {
+                return response.json();
             }
-            TM.editor.createThumbnail(json);
+            throw new Error("Unexpected response");
         } else {
-            console.error(this.responseText);
+            throw new Error("Server Error");
         }
+    })
+    .then(json => {
+        if (json.status !== 0) {
+            throw new Error(json.message);
+        }
+        uploadMaxFileSize = json.upload_max_filesize;
+        postMaxSize = json.post_max_size;
+        markdownEditorCreateThumbnail(json.list);
+    })
+    .catch(error => {
+        console.error(error);
+        alert(error.message);
     });
-    TM.xhr.send(null);
-};
+}
 
-TM_Editor.prototype.createThumbnail = function(json) {
-    var origin = document.getElementById('image-addnew');
-    for(var i = 0; i < json.length; i++) {
-        var item = json[i];
-        var id = 'thumbnail-' + item.id;
-        var thumbnail = document.getElementById(id);
+function markdownEditorCreateThumbnail(json) {
+    const origin = document.getElementById('image-addnew');
+    for(let i = 0; i < json.length; i++) {
+        const item = json[i];
+        const id = 'thumbnail-' + item.id;
+        let thumbnail = document.getElementById(id);
         if(thumbnail) {
-            var img = thumbnail.getElementsByTagName('img')[0];
+            const img = thumbnail.getElementsByTagName('img')[0];
             img.src = item.data;
             img.draggable = 'false';
             continue;
@@ -214,73 +245,100 @@ TM_Editor.prototype.createThumbnail = function(json) {
         thumbnail = origin.cloneNode(true);
         thumbnail.id = 'thumbnail-' + item.id;
 
-        var label = thumbnail.getElementsByTagName('label')[0];
-        var dummy = label.parentNode.insertBefore(document.createElement('span'), label);
+        const label = thumbnail.getElementsByTagName('label')[0];
+        const dummy = label.parentNode.insertBefore(document.createElement('span'), label);
         dummy.innerHTML = label.innerHTML;
         dummy.className = 'selected';
-        dummy.addEventListener('mousedown', this.thumbClick, false);
+        dummy.addEventListener('mousedown', markdownEditorClickThumbnail);
         label.parentNode.removeChild(label);
 
-        var check = dummy.appendChild(document.createElement('span'));
+        const check = dummy.appendChild(document.createElement('span'));
         check.className = 'checked';
+        check.addEventListener('click', markdownEditorSelectThumbnail);
 
-        var span = thumbnail.getElementsByClassName('thumbnail')[0];
-
-        var img = span.appendChild(document.createElement('img'));
+        const span = thumbnail.getElementsByClassName('thumbnail')[0];
+        const img = span.appendChild(document.createElement('img'));
         img.src = item.data;
 
-        var input = thumbnail.getElementsByTagName('input')[0];
+        const input = thumbnail.getElementsByTagName('input')[0];
         input.name = 'file[id_' + item.id + ']';
-        input.addEventListener('change', this.imageSelected, false);
+        input.addEventListener('change', markdownEditorImageSelected);
 
-        var a = thumbnail.appendChild(document.createElement('a'));
-        a.href = '#delete:' + item.id;
-        a.className = 'mark';
-        a.addEventListener('click', this.delete, false);
+        const anchor = thumbnail.appendChild(document.createElement('a'));
+        anchor.href = '#delete:' + item.id;
+        anchor.className = 'mark';
+        anchor.addEventListener('click', markdownEditorDeleteImage);
 
         origin.parentNode.insertBefore(thumbnail, origin);
     }
-};
+}
 
-TM_Editor.prototype.thumbClick = function(event) {
-    event.preventDefault();
-    var instance = TM.editor;
+function markdownEditorImageSelected(event) {
+    const element = event.currentTarget;
+    if (element.value === '') {
+        event.preventDefault();
+        return;
+    }
+    const form = element.form;
+    let data = new FormData(form);
+    data.append('mode', form.dataset.upload);
 
-    if(instance.checkDblClick != 1) {
-        instance.checkDblClick = 1;
-        setTimeout(function() {
-            if(instance.checkDblClick != 2) {
-                instance.selectThumbnail(event.target);
+    /*
+     * Fix to Safari
+     *
+     * delete empty file selector
+     */
+    let empties = [];
+    for (item of data) {
+        if (typeof(item[1]) === 'object') {
+            if (item[0] !== element.name) {
+                empties.push(item[0]);
             }
-            instance.checkDblClick = 0;
-        }, 300);
-    } else {
-        instance.checkDblClick = 2;
-        return instance.thumbDblClick(event.currentTarget);
-    }
-};
 
-TM_Editor.prototype.selectThumbnail = function(element) {
-    var selected = document.getElementsByClassName(this.cnActiveImage);
-    for (var i = 0; i < selected.length; i++) {
-        selected[i].classList.remove(this.cnActiveImage);
+            if (item[1].size) {
+                if (uploadMaxFileSize < item[1].size) {
+                    alert('File size is too large');
+                    return;
+                }
+            }
+        }
     }
-    var parent = TM.getParentNode(element, '.selected');
-    if (parent) {
-        parent.classList.add(this.cnActiveImage);
-    }
-};
+    for (item of empties) data.delete(item);
 
-TM_Editor.prototype.thumbDblClick = function(element) {
-    var input = element.getElementsByTagName('input')[0];
-    var event = document.createEvent('MouseEvents');
-    event.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-    input.dispatchEvent(event);
-};
+    fetch(form.action, {
+        method: 'POST',
+        credentials: 'same-origin',
+        header: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: data
+    })
+    .then(response => {
+        if (response.ok) {
+            let contentType = response.headers.get("content-type");
+            if (contentType.match(/^application\/json/)) {
+                return response.json();
+            }
+            throw new Error("Unexpected response");
+        } else {
+            throw new Error("Server Error");
+        }
+    })
+    .then(json => {
+        if (json.status !== 0) {
+            throw new Error(json.message);
+        }
+        markdownEditorCreateThumbnail(json.list);
+    })
+    .catch(error => {
+        console.error(error);
+        alert(error.message);
+    });
+}
 
-TM_Editor.prototype.delete = function(event) {
-    var element = event.target;
-    var form = TM.getParentNode(element, 'form');
+function markdownEditorDeleteImage(event) {
+    const element = event.target;
+    const form = element.findParent('form');
 
     if (confirm(form.dataset.confirm)) {
         var hash = element.hash;
@@ -291,72 +349,76 @@ TM_Editor.prototype.delete = function(event) {
         data.append('id', id);
         data.append('stub', form.stub.value);
 
-        TM.xhr.init('POST', form.action, true, function(event) {
-            if (this.status == 200) {
-                try {
-                    var json = JSON.parse(this.responseText);
-                } catch (exceptionObject) {
-                    console.error(exceptionObject.message);
-                    console.log(this.responseText);
-                    return;
+        fetch(form.action, {
+            method: 'POST',
+            credentials: 'same-origin',
+            header: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: data
+        })
+        .then(response => {
+            if (response.ok) {
+                let contentType = response.headers.get("content-type");
+                if (contentType.match(/^application\/json/)) {
+                    return response.json();
                 }
-
-                var id = 'thumbnail-' + json.id;
-                var element = document.getElementById(id);
-                if (element) {
-                    element.parentNode.removeChild(element);
-                }
-
+                throw new Error("Unexpected response");
             } else {
-                // TODO: add error handling
-                console.log(this.responseText);
+                throw new Error("Server Error");
             }
+        })
+        .then(json => {
+            if (json.status !== 0) {
+                throw new Error(json.message);
+            }
+            const id = 'thumbnail-' + json.id;
+            const element = document.getElementById(id);
+            if (element) {
+                element.parentNode.removeChild(element);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+            alert(error.message);
         });
-        TM.xhr.send(data);
     }
-};
+}
 
-TM_Editor.prototype.imageSelected = function(event) {
-    var element = event.currentTarget;
-    if (event.currentTarget.value === '') {
-        event.preventDefault();
-        return;
+function markdownEditorClickThumbnail(event) {
+    event.preventDefault();
+
+    if(markdownEditorClickCount !== 1) {
+        markdownEditorClickCount = 1;
+        setTimeout(function() {
+            markdownEditorClickCount = 0;
+        }, 300);
+    } else {
+        markdownEditorClickCount = 2;
+        return markdownEditorDoubleClickThumbnail(event.currentTarget);
     }
-    var form = element.form;
-    var data = new FormData(form);
-    data.append('mode', form.dataset.upload);
+}
 
-
-    /*
-     * Fix to Safari
-     *
-     * delete empty file selector
-     */
-    var empties = [];
-    for (item of data) {
-        if (typeof(item[1]) === 'object') {
-            if (item[0] !== element.name) {
-                empties.push(item[0]);
-            }
+function markdownEditorSelectThumbnail(event) {
+    const element = event.target;
+    const parent = element.findParent('.selected');
+    const selected = document.getElementsByClassName(markdownEditorActiveImageClassName);
+    let foundSelf = false;
+    for (let i = 0; i < selected.length; i++) {
+        const select = selected[i];
+        select.classList.remove(markdownEditorActiveImageClassName);
+        if (select === parent) {
+            foundSelf = true;
         }
     }
-    for (item of empties) data.delete(item);
+    if (foundSelf === false && parent) {
+        parent.classList.add(markdownEditorActiveImageClassName);
+    }
+}
 
-
-    TM.xhr.init('POST', form.action, true, function(event) {
-        if (this.status == 200) {
-            try {
-                var json = JSON.parse(this.responseText);
-                TM.editor.createThumbnail(json);
-            } catch (exceptionObject) {
-                console.error(exceptionObject.message);
-                console.log(this.responseText);
-            }
-        } else {
-            console.error(this.responseText);
-        }
-    });
-    TM.xhr.send(data);
-};
-
-TM.editor = new TM_Editor();
+function markdownEditorDoubleClickThumbnail(element) {
+    const input = element.getElementsByTagName('input')[0];
+    const event = document.createEvent('MouseEvents');
+    event.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+    input.dispatchEvent(event);
+}

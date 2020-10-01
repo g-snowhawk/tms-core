@@ -737,6 +737,7 @@ a.small-button:hover {
   margin: 0;
   position: sticky;
   top: 0;
+  z-index: 88;
 }
 #backlink a {
   background: #efefef;
