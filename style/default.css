@@ -396,13 +396,14 @@ a.small-button:hover {
   align-items: center;
   background: #678;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   width: 100%;
 }
 .explorer-list .footer-controls > * {
   box-sizing: border-box;
   flex-grow: 1;
   padding: 0 .5rem;
-  width: 50%;
 }
 .explorer-list .footer-controls a,
 .explorer-list .footer-controls span {
