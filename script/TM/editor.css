@@ -40,7 +40,7 @@
   bottom: 0;
   display: flex;
   flex-direction: column;
-  height: 300px;
+  height: 380px;
   left: 0;
   margin: auto;
   max-width: 980px;
@@ -57,8 +57,25 @@
   position: relative;
 }
 #image-viewer .footer {
+  align-items: center;
+  display: flex;
   padding: 4px 8px;
   position: relative;
+}
+#image-viewer .footer > input {
+  margin: auto 2px;
+}
+#image-viewer .footer > a {
+  color: #69c;
+  display: inline-block;
+  font-size: 0.8rem;
+  line-height: 1;
+  margin: auto 2px;
+  padding: 0.5rem 0.8rem;
+}
+#image-viewer .footer > a:first-of-type {
+  margin-left: auto;
+  visibility: hidden;
 }
 .image-set {
   display: inline-block;
@@ -88,26 +105,28 @@
 }
 .image-set a {
   background: transparent url(editor/icon_delete.svg) no-repeat 50% 50%;
-  display: inline-block;
-  height: 24px;
-  left: 0;
+  background-size: 32px;
+  bottom: 0;
+  display: none;
+  height: 32px;
   line-height: 1;
   margin: 0;
-  opacity: 0;
+  opacity: 1;
   position: absolute;
-  top: 0;
+  right: 0;
   transition: opacity .3s ease;
   vertical-align: top;
-  width: 24px;
+  width: 32px;
 }
-.image-set a:hover {
-  opacity: 1;
+#thumbnails.edit-mode a {
+  display: inline-block;
 }
 .image-set span.selected .checked {
   background: transparent url(editor/icon_check_mark.svg) no-repeat 50% 50%;
+  background-size: 32px;
   bottom: 0;
   display: inline-block;
-  height: 24px;
+  height: 32px;
   line-height: 1;
   margin: 0;
   opacity: 0;
@@ -115,7 +134,7 @@
   right: 0;
   transition: opacity .5s ease;
   vertical-align: top;
-  width: 24px;
+  width: 32px;
 }
 .image-set span.editor-image-active .checked {
   background-image: url(editor/icon_check.svg);
@@ -123,4 +142,7 @@
 .image-set span.editor-image-active .checked,
 .image-set span.selected:hover .checked {
   opacity: 1;
+}
+#thumbnails.edit-mode .image-set span.selected .checked {
+  display: none;
 }

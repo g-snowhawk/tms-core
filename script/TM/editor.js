@@ -8,6 +8,7 @@
  * @version 1.0.1
  */
 const markdownEditorActiveImageClassName = 'editor-image-active';
+
 let markdownEditorCurrentArea;
 let markdownEditorLeftString;
 let markdownEditorRightString;
@@ -15,6 +16,7 @@ let markdownEditorSelectedString;
 let markdownEditorClickCount = 0;
 let uploadMaxFileSize = 0;
 let postMaxSize = 0;
+
 switch (document.readyState) {
     case 'loading' :
         window.addEventListener('DOMContentLoaded', markdownEditorInit)
@@ -179,6 +181,12 @@ function markdownEditorImageForm(mask, element) {
     if (!stub) {
         return;
     }
+
+    const anchors = document.querySelectorAll('#image-viewer .footer a');
+    anchors.forEach((anchor) => {
+        anchor.addEventListener('click', markdownEditorChangeMode);
+        anchor.dataset.defaultLabel = anchor.innerHTML;
+    });
 
     mask.addEventListener('click', markdownEditorClearMask);
 
@@ -421,4 +429,37 @@ function markdownEditorDoubleClickThumbnail(element) {
     const event = document.createEvent('MouseEvents');
     event.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
     input.dispatchEvent(event);
+}
+
+function markdownEditorChangeMode(event) {
+    const element = event.target;
+    let prev = element.parentNode.previousSibling;
+    while (prev.nodeType !== Node.ELEMENT_NODE) {
+        prev = prev.previousSibling;
+    }
+
+    const modes = {
+        select: 'select-mode',
+        remove: 'edit-mode',
+    };
+
+    const key = element.dataset.mode;
+    //if (element.classList.contains('select')) {
+    //    key = 'select';
+    //} else if (element.classList.contains('remove')) {
+    //    key = 'remove';
+    //}
+
+    prev.classList.toggle(modes[key]);
+    for (let name in modes) {
+        if (name !== key) {
+            prev.classList.remove(modes[name]);
+            const anchor = element.parentNode.querySelector('a[data-mode=' + name + ']');
+            if (anchor) {
+                anchor.innerHTML = anchor.dataset.defaultLabel;
+            }
+        }
+    }
+    element.innerHTML = (prev.classList.contains(modes[key]))
+        ? element.dataset.complete : element.dataset.defaultLabel;
 }
