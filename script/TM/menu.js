@@ -99,6 +99,7 @@ TM_Menu.prototype.openPullDown = function(ev, mo) {
                 instance.opener.push(u);
 
                 window.addEventListener('click', instance.closePullDown, false);
+                window.addEventListener('touchend', instance.closePullDown, false);
 
                 if (ev.stopPropagation) ev.stopPropagation();
                 else if (ev.cancelBubble) ev.cancelBubble();
@@ -141,6 +142,7 @@ TM_Menu.prototype.closePullDown = function(ev) {
     instance.opener = tmp;
     if (instance.opener.length === 0 && ev.type !== 'mouseover'){
         window.removeEventListener('click', instance.closePullDown, false);
+        window.removeEventListener('touchend', instance.closePullDown, false);
         instance.isopen = [];
     }
     if (opened) {
