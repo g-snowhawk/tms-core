@@ -268,6 +268,7 @@ class Response extends Unauth
         }
         $this->view->bind('post', $post);
 
+        $plugins = $this->app->execPlugin('beforeRendering', 'alias-edit-subform');
         $response = $this->view->render('user/alias_edit_subform.tpl', true);
 
         $json = [

@@ -585,6 +585,13 @@ class User extends \Tms\Common
             $save['lft'] = null;
             $save['rgt'] = null;
 
+            $parent = $this->request->param('real_id');
+            if (!empty($parent)) {
+                $parent_rgt = $this->db->get('rgt', 'user', 'id = ?', [$parent]);
+                $save['lft'] = $parent_rgt;
+                $save['rgt'] = $parent_rgt + 1;
+            }
+
             $raw = ['create_date' => 'CURRENT_TIMESTAMP'];
             if (false !== $result = $this->db->insert($table, $save, $raw)) {
                 $post['id'] = $this->db->lastInsertId(null, 'id');
