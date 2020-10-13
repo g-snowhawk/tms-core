@@ -406,6 +406,7 @@ a.small-button:hover {
   padding: 0 .5rem;
 }
 .explorer-list .footer-controls a,
+.explorer-list .footer-controls label,
 .explorer-list .footer-controls span {
   background: rgba(255,255,255,0);
   border-radius: 6px;
@@ -418,6 +419,7 @@ a.small-button:hover {
   transition: all .5s ease;
   vertical-align: top;
 }
+.explorer-list .footer-controls label:hover,
 .explorer-list .footer-controls a:hover {
   background: rgba(255,255,255,.2);
 }
@@ -454,6 +456,13 @@ a.small-button:hover {
 }
 .explorer-list .footer-controls a:hover mark.download {
   background-image: url(icon_download_hover.svg);
+}
+.explorer-list .footer-controls label.auto-uploader:after {
+  color: #FF0;
+  content: '+';
+}
+.explorer-list .footer-controls label.auto-uploader input {
+  display: none;
 }
 .explorer-list .footer-controls .pagination .pager a:focus,
 .explorer-list .footer-controls .pagination .pager a:hover {
