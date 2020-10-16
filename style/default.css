@@ -1068,6 +1068,20 @@ div.input input[type="text"] {
   border-radius: 0;
   width: auto;
 }
+div.input input[type="datetime-local"],
+div.input input[type="date"],
+div.input input[type="time"] {
+  min-height: 21px;
+}
+div.input input[type="datetime-local"] {
+  min-width: 124px;
+}
+div.input input[type="date"] {
+  min-width: 96px;
+}
+div.input input[type="time"] {
+  min-width: 60px;
+}
 div.input.flex input.grow-1 {
   flex-grow: 1;
 }
