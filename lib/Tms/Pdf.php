@@ -146,27 +146,25 @@ class Pdf
             $this->engine->SetXY($property['x'], $origin_y);
             $value = '';
 
-            if (is_array($property['name'])) {
-                $delimiter = array_shift($property['name']);
+            $key = $property['name'] ?? null;
+
+            if (is_array($key)) {
+                $delimiter = array_shift($key);
                 $names = [];
-                foreach ($property['name'] as $name) {
+                foreach ($key as $name) {
                     $names[] = $data[$name];
                 }
                 $value .= implode($delimiter, $names);
-            } else {
-                if (isset($data[$property['name']])) {
-
-                    if (is_array($data[$property['name']])) {
-                        if (isset($property['format'])) {
-                            $params = array_merge([$property['format']],$data[$property['name']]);
-                            $data[$property['name']] = call_user_func_array('sprintf', $params);
-                        } else {
-                            $data[$property['name']] = implode('', $data[$property['name']]);
-                        }
+            } elseif (isset($data[$key])) {
+                if (is_array($data[$key])) {
+                    if (isset($property['format'])) {
+                        $params = array_merge([$property['format']], $data[$key]);
+                        $data[$key] = call_user_func_array('sprintf', $params);
+                    } else {
+                        $data[$key] = implode('', $data[$key]);
                     }
-
-                    $value .= $data[$property['name']];
                 }
+                $value .= $data[$key];
             }
             if (empty($value) && $value !== 0 && $value !== '0') {
                 continue;
