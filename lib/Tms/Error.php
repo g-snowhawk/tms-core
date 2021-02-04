@@ -62,7 +62,7 @@ class Error extends \P5\Error
      * @param int    $errline
      * @param array  $errcontext
      */
-    public function errorHandler($errno, $errstr, $errfile, $errline, $errcontext)
+    public function errorHandler($errno, $errstr, $errfile, $errline, $errcontext = null)
     {
         parent::errorHandler($errno, $errstr, $errfile, $errline, $errcontext);
     }

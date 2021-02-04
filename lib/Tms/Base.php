@@ -24,6 +24,11 @@ abstract class Base
     const INIFILE = 'config.php';
 
     /**
+     * The name of guest user
+     */
+    const GUESTNAME = 'guest';
+
+    /**
      * Execute default function name
      */
     const DEFAULT_METHOD = 'defaultView';
@@ -267,6 +272,13 @@ abstract class Base
         $columns = (is_null($this->db)) ? [] : $this->db->getFields('user', false, false, "like 'pw_%'");
         $expire = (in_array('pw_expire', $columns)) ? 'pw_expire' : null;
 
+        if ($this->session->param('authenticationFrequency') === 'everytime') {
+            if (empty($uname)) {
+                $uname = $this->session->param('uname');
+                $secret = $this->session->param('securet');
+            }
+        }
+
         if (false === $auth->authentication($uname, $upass, $secret, $expire)) {
             if (!is_null($this->request->POST('authEnabler'))) {
                 if (!isset($_COOKIE['enableCookie'])) {
@@ -291,13 +303,13 @@ abstract class Base
                 if (   is_null($this->session->param('uname'))
                     && strtolower($this->cnf('application:guest')) === 'allow'
                 ) {
-                    $uname = 'guest';
+                    $uname = self::GUESTNAME;
                     $secret = uniqid();
                     $this->session->param('authorized', self::ident($uname, $secret));
                     $this->session->param('uname', $uname);
                     $this->session->param('securet', $secret);
                     return true;
-                } elseif ($this->session->param('uname') === 'guest' && empty($uname)) {
+                } elseif ($this->session->param('uname') === self::GUESTNAME && empty($uname)) {
                     $this->session->clear('authorized');
                     $this->session->clear('securet');
                 }
@@ -311,7 +323,7 @@ abstract class Base
                 ]
             );
             $post = $this->request->POST();
-            if (!isset($post['uname'])) {
+            if (!isset($post['uname']) && $uname !== self::GUESTNAME) {
                 $post['uname'] = $uname;
             }
             $this->view->bind('err', $err);
@@ -370,8 +382,12 @@ abstract class Base
             $securet = $this->session->param('securet');
         }
 
-        if ($name === 'guest' && $this->cnf('application:guest') === 'allow' && !empty($securet)) {
+        if ($name === self::GUESTNAME && $this->cnf('application:guest') === 'allow' && !empty($securet)) {
             return $securet;
+        }
+
+        if ($this->session->param('authenticationFrequency') === 'everytime') {
+            $securet = md5(random_bytes(12));
         }
 
         return openssl_encrypt(
