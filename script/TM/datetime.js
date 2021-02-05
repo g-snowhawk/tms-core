@@ -193,17 +193,21 @@ TM_Datetime.prototype.unlockPopup = function() {
 };
 
 TM_Datetime.prototype.createPopup = function(element) {
-    var container = element.offsetParent.appendChild(document.createElement('div'));
-    container.id = 'datetime-selector-container-' + element.name;
-    container.classList.add('calendar-ui-popup');
-    container.classList.add('calendar-ui');
-    container.addEventListener('mouseover', this.lockPopup);
-    container.addEventListener('mouseout', this.unlockPopup);
-    container.style.top = (element.offsetTop + element.offsetHeight) + 'px';
-    container.style.left = element.offsetLeft + 'px';
-    container.opener = element;
+    try {
+        var container = element.offsetParent.appendChild(document.createElement('div'));
+        container.id = 'datetime-selector-container-' + element.name;
+        container.classList.add('calendar-ui-popup');
+        container.classList.add('calendar-ui');
+        container.addEventListener('mouseover', this.lockPopup);
+        container.addEventListener('mouseout', this.unlockPopup);
+        container.style.top = (element.offsetTop + element.offsetHeight) + 'px';
+        container.style.left = element.offsetLeft + 'px';
+        container.opener = element;
 
-    return container;
+        return container;
+    } catch(e) {
+        return;
+    }
 };
 
 TM_Datetime.prototype.selectDate = function(event) {
@@ -602,6 +606,7 @@ TM_Datetime.prototype.focusDate = function(event) {
     var month = date.getMonth() + 1;
 
     var container = this.createPopup(element);
+    if (!container) return;
 
     var datetime = new TM_Datetime();
     datetime.setCallback(function(){
@@ -686,6 +691,7 @@ TM_Datetime.prototype.focusDateTime = function(event) {
     var month = date.getMonth() + 1;
 
     var container = this.createPopup(element);
+    if (!container) return;
 
     var datetime = new TM_Datetime();
     datetime.setCallback(this.selectDate);
