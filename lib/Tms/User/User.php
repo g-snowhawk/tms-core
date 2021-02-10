@@ -720,4 +720,13 @@ class User extends \Tms\Common
         $mail->to($to);
         return $mail->send();
     }
+
+    protected function resetUserByCli($uname)
+    {
+        if (php_sapi_name() !== 'cli') {
+            trigger_error('Bad Requiest!', E_USER_ERROR);
+        }
+        $this->session->param('uname', $uname);
+        $this->setUserInfo();
+    }
 }
