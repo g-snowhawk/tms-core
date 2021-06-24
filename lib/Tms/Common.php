@@ -636,4 +636,9 @@ abstract class Common
         $view->render('404.tpl');
         exit;
     }
+
+    public function dataFromDb($columns, $table, $statement, array $options)
+    {
+        return $this->db->get($columns, $table, $statement, $options);
+    }
 }

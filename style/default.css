@@ -348,6 +348,7 @@ a.small-button:hover {
 }
 /* list */
 .explorer-list {
+  background: #ccc;
   bottom: 0;
   display: flex;
   flex-direction: column;
