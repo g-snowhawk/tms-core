@@ -700,25 +700,30 @@ class Db extends \P5\Db
         );
     }
 
-    public function nsmCleanupSQL($table)
+    public function nsmCleanupSQL($table, $where = '', array &$options)
     {
-        $lftrgt = "SELECT lft AS seq FROM table::$table
+        $lftrgt = "SELECT lft AS seq FROM table::{$table} {$where}
                     UNION ALL
-                   SELECT rgt AS seq FROM table::$table";
+                   SELECT rgt AS seq FROM table::{$table} {$where}";
+        $options = array_merge($options, $options, $options, $options, $options);
+
         return str_replace('table::', $this->prefix, 
-            "UPDATE table::$table
+            "UPDATE table::{$table}
                 SET lft = (SELECT COUNT(*)
-                             FROM ($lftrgt) LftRgt
+                             FROM ({$lftrgt}) LftRgt
                             WHERE seq <= lft),
                     rgt = (SELECT COUNT(*)
-                             FROM ($lftrgt) LftRgt
-                            WHERE seq <= rgt)"
+                             FROM ({$lftrgt}) LftRgt
+                            WHERE seq <= rgt) {$where}"
         );
     }
 
-    public function nsmCleanup($table)
+    public function nsmCleanup($table, $where = '', array $options = [])
     {
-        return parent::exec(self::nsmCleanupSQL($table));
+        if (!empty($where) && !preg_match('/^\s*where\s+.+$/i', $where)) {
+            $where = "WHERE {$where}";
+        }
+        return parent::exec(self::nsmCleanupSQL($table, $where, $options), $options);
     }
 
     /**
